@@ -504,10 +504,12 @@
                     const gain = audioCtx.createGain();
                     const triggerTime = now + (idx * 0.05);
                     osc.type = 'sine';
+  
                     osc.frequency.setValueAtTime(freq, triggerTime);
                     gain.gain.setValueAtTime(0.2, triggerTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, triggerTime + 0.15);
                     osc.connect(gain);
+                 
                     gain.connect(audioCtx.destination);
                     osc.start(triggerTime);
                     osc.stop(triggerTime + 0.15);
@@ -529,7 +531,6 @@
             nextBluffHand: 0
         };
 
-        // Initialize the first random bluff threshold target (between 1 and 15 hands out)
         function pickNextBluffTarget() {
             state.nextBluffHand = state.handsDealtCount + Math.floor(Math.random() * 15) + 1;
         }
@@ -539,6 +540,38 @@
             const values = cards.map(c => VALUES.indexOf(c.val));
             values.sort((a,b) => b - a);
             
+            // 1. Check for Flush
+            let suitCounts = {};
+            cards.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
+            let flushSuit = Object.keys(suitCounts).find(s => suitCounts[s] >= 5);
+            
+            if (flushSuit) {
+                // Gather value ranks that match the flush suit and sort descending
+                let flushValues = cards.filter(c => c.suit === flushSuit).map(c => VALUES.indexOf(c.val));
+                flushValues.sort((a,b) => b - a);
+                return { score: 600 + flushValues[0], label: "Flush" };
+            }
+
+            // 2. Check for Straight
+            let uniqueVals = Array.from(new Set(values)).sort((a, b) => b - a);
+            // Handle Ace-low straight configuration (5, 4, 3, 2, A)
+            if (uniqueVals.includes(12)) {
+                uniqueVals.push(-1); // Treat Ace rank index 12 also as -1
+            }
+            
+            let straightHighCard = -1;
+            for (let i = 0; i <= uniqueVals.length - 5; i++) {
+                if (uniqueVals[i] - uniqueVals[i+4] === 4) {
+                    straightHighCard = uniqueVals[i];
+                    break;
+                }
+            }
+            
+            if (straightHighCard !== -1) {
+                return { score: 450 + straightHighCard, label: "Straight" };
+            }
+
+            // 3. Setup frequency match groupings for Pairs, Trips, Full Houses
             let counts = {};
             values.forEach(v => counts[v] = (counts[v] || 0) + 1);
             let pairs = [], trips = [];
@@ -547,6 +580,8 @@
                 if (counts[v] === 2) pairs.push(Number(v));
             }
             pairs.sort((a,b) => b - a);
+            trips.sort((a,b) => b - a);
+
             if (trips.length > 0 && (pairs.length > 0 || trips.length > 1)) {
                 const pairValue = trips.length > 1 ? trips[1] : pairs[0];
                 return { score: 500 + trips[0] * 15 + pairValue, label: "Full House" };
@@ -601,7 +636,6 @@
             
             const mainActionBtn = document.getElementById('btn-main-action');
             mainActionBtn.disabled = !state.isPlayerTurn;
-
             if (state.pendingBetSelection > 0) {
                 const labelType = state.currentBet > 0 ? "Raise" : "Bet";
                 mainActionBtn.innerText = `Confirm ${labelType} ($${state.pendingBetSelection})`;
@@ -626,7 +660,6 @@
             document.getElementById('btn-qb40').disabled = !state.isPlayerTurn || maxAffordable < 40;
             document.getElementById('btn-qb60').disabled = !state.isPlayerTurn || maxAffordable < 60;
             document.getElementById('btn-allin').disabled = !state.isPlayerTurn || maxAffordable <= 0;
-
             const cancelBtn = document.getElementById('btn-cancel-bet');
             if (state.pendingBetSelection > 0) {
                 cancelBtn.style.display = "block";
@@ -658,9 +691,7 @@
                 return;
             }
 
-            // Increment the counter tracking total hands played
             state.handsDealtCount++;
-
             document.getElementById('payout-status').innerText = "";
             document.getElementById('payout-status').className = "payout-notice";
 
@@ -687,7 +718,6 @@
             pStatus.className = "status-text";
             oStatus.innerText = ""; oStatus.className = "status-text";
             document.getElementById('game-status').innerText = "Pre-Flop";
-
             state.dealer = state.dealer === 0 ? 1 : 0;
             state.isPlayerTurn = state.dealer === 0;
 
@@ -799,15 +829,11 @@
                 return;
             }
 
-            // Check if this specific hand matches the hidden target bluff schedule
             const isBluffHand = (state.handsDealtCount === state.nextBluffHand);
-
             const oppCombo = evaluateHandScore([...state.oppHand, ...state.community]);
             
             if (toCall > 0) {
-                // OPPONENT RESPONDING TO YOUR BET/RAISE
                 if (isBluffHand) {
-                    // When bluffing, the bot pretends it has a monster hand and raises back or calls
                     if (Math.random() > 0.3 && state.oppChips > toCall * 2) {
                         const rawRaise = state.currentBet + Math.floor(state.pot * 0.6);
                         executeOpponentBet(rawRaise, "Raise");
@@ -844,14 +870,11 @@
                     endHand();
                 }
             } else {
-                // IT IS UNOPENED; ACTION IS CHECKED TO THE BOT
                 if (isBluffHand) {
-                    // Fire a heavy bluff bet half the time to steal the pot
                     if (Math.random() > 0.4) {
                         const rawBet = Math.max(40, Math.floor(state.pot * 0.8));
                         executeOpponentBet(rawBet, "Bet");
                     } else {
-                        // Otherwise passive check/trap appearance
                         playSound('chip');
                         oStatus.innerText = "Check";
                         oStatus.className = "status-text";
@@ -979,7 +1002,6 @@
                 msg = "Split!";
             }
 
-            // If a scheduled bluff hand finishes, roll the next target
             if (wasBluffHand) {
                 pickNextBluffTarget();
             }
@@ -989,7 +1011,6 @@
         }
 
         function endHand() {
-            // Safety: if a player folds pre-showdown on a bluff hand, ensure target shifts forward
             if (state.handsDealtCount === state.nextBluffHand) {
                 pickNextBluffTarget();
             }
@@ -1031,7 +1052,6 @@
             document.getElementById('opp-status').innerText = "";
             document.getElementById('game-status').innerText = "Tap Deal";
             document.getElementById('payout-status').innerText = "";
-            
             document.getElementById('game-over-screen').classList.remove('show');
             updateUI();
         }
