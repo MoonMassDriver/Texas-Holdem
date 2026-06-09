@@ -376,9 +376,39 @@
             max-width: 240px;
             width: 100%;
         }
+
+        .secondary-btn {
+            background: #334155;
+            color: var(--text-main);
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            max-width: 240px;
+            width: 100%;
+        }
+        .secondary-btn:active {
+            background: #475569;
+        }
+
+        /* Floating back button hidden by default during review */
+        #btn-return-results {
+            position: absolute;
+            top: calc(env(safe-area-inset-top) + 8px);
+            left: 16px;
+            z-index: 90;
+            width: auto;
+            padding: 8px 16px;
+            font-size: 12px;
+            background: var(--alert-accent);
+            color: #000000;
+            display: none;
+        }
     </style>
 </head>
 <body>
+
+    <button id="btn-return-results" onclick="showGameOverOverlayAgain()">← Return to Results</button>
 
     <div class="game-header">
         <div id="opp-chips" class="header-chips">Opponent: $1000</div>
@@ -437,6 +467,7 @@
         <div class="game-over-title" id="go-title">Game Over</div>
         <div class="game-over-desc" id="go-desc">You ran out of chips!</div>
         <button class="restart-btn" onclick="resetEntireMatch()">Play Again</button>
+        <button class="secondary-btn" onclick="reviewFinalHand()">Review Final Hand</button>
     </div>
 
     <script>
@@ -509,7 +540,7 @@
                     gain.gain.setValueAtTime(0.2, triggerTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, triggerTime + 0.15);
                     osc.connect(gain);
-                 
+               
                     gain.connect(audioCtx.destination);
                     osc.start(triggerTime);
                     osc.stop(triggerTime + 0.15);
@@ -530,7 +561,6 @@
             handsDealtCount: 0,
             nextBluffHand: 0
         };
-
         function pickNextBluffTarget() {
             state.nextBluffHand = state.handsDealtCount + Math.floor(Math.random() * 15) + 1;
         }
@@ -544,7 +574,6 @@
             let suitCounts = {};
             cards.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
             let flushSuit = Object.keys(suitCounts).find(s => suitCounts[s] >= 5);
-            
             if (flushSuit) {
                 // Gather value ranks that match the flush suit and sort descending
                 let flushValues = cards.filter(c => c.suit === flushSuit).map(c => VALUES.indexOf(c.val));
@@ -556,7 +585,8 @@
             let uniqueVals = Array.from(new Set(values)).sort((a, b) => b - a);
             // Handle Ace-low straight configuration (5, 4, 3, 2, A)
             if (uniqueVals.includes(12)) {
-                uniqueVals.push(-1); // Treat Ace rank index 12 also as -1
+                uniqueVals.push(-1);
+                // Treat Ace rank index 12 also as -1
             }
             
             let straightHighCard = -1;
@@ -694,14 +724,12 @@
             state.handsDealtCount++;
             document.getElementById('payout-status').innerText = "";
             document.getElementById('payout-status').className = "payout-notice";
-
             playSound('card');
             state.deck = createDeck();
             state.playerHand = [state.deck.pop(), state.deck.pop()];
             state.oppHand = [state.deck.pop(), state.deck.pop()];
             state.community = [];
             state.round = 0;
-
             const blindAmount = Math.min(20, state.playerChips, state.oppChips);
             state.pot = blindAmount * 2; 
             state.playerChips -= blindAmount;
@@ -1036,6 +1064,17 @@
             document.getElementById('game-over-screen').classList.add('show');
         }
 
+        // Feature additions: temporarily hide the overlay to let players look at the table
+        function reviewFinalHand() {
+            document.getElementById('game-over-screen').classList.remove('show');
+            document.getElementById('btn-return-results').style.display = "block";
+        }
+
+        function showGameOverOverlayAgain() {
+            document.getElementById('game-over-screen').classList.add('show');
+            document.getElementById('btn-return-results').style.display = "none";
+        }
+
         function resetEntireMatch() {
             state.playerChips = 1000;
             state.oppChips = 1000;
@@ -1053,6 +1092,7 @@
             document.getElementById('game-status').innerText = "Tap Deal";
             document.getElementById('payout-status').innerText = "";
             document.getElementById('game-over-screen').classList.remove('show');
+            document.getElementById('btn-return-results').style.display = "none";
             updateUI();
         }
 
