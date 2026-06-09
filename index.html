@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Minimal Hold'em</title>
+    <style>
+        :root {
+            --bg-color: #090d10;
+            --card-bg: #ffffff;
+            --card-text-dark: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-light: #0c4a6e;
+            --alert-accent: #f59e0b; 
+            --btn-bg: #1e293b;
+            --btn-fold-bg: #3f1616;
+            --btn-fold-text: #fca5a5;
+            --btn-check-bg: #2563eb;
+            --btn-call-bg: #d97706; 
+            --btn-confirm-bg: #16a34a; /* Vibrant green for confirm */
+            --btn-cancel-bg: #dc2626;
+            --shadow: rgba(0, 0, 0, 0.6);
+            --win-green: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100dvh; 
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: calc(env(safe-area-inset-top) + 8px) 16px 0 16px;
+            position: relative;
+        }
+
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .header-chips {
+            flex: 1;
+        }
+        #my-chips {
+            text-align: right;
+        }
+
+        .pot-display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+        }
+
+        .pot-display {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 900;
+            border: 1px solid var(--accent);
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
+            white-space: nowrap;
+        }
+
+        .payout-notice {
+            font-size: 12px;
+            font-weight: 800;
+            height: 14px;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .payout-notice.win { color: var(--win-green); }
+        .payout-notice.lose { color: #ef4444; }
+        .payout-notice.split { color: var(--alert-accent); }
+
+        .play-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px; 
+            width: 100%;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .player-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 100%;
+            position: relative;
+        }
+
+        .player-action-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+            position: relative;
+        }
+
+        .action-btn-wrapper {
+            width: 110px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .action-btn-wrapper.left-side {
+            justify-content: flex-start;
+        }
+        .action-btn-wrapper.right-side {
+            justify-content: flex-end;
+        }
+
+        .dealer-puck {
+            width: 18px;
+            height: 18px;
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            border: 1px solid #94a3b8;
+            visibility: hidden;
+        }
+
+        #opp-dealer-container {
+            align-self: flex-start;
+            height: 18px;
+            margin-top: -2px;
+            margin-bottom: 2px;
+        }
+
+        #player-dealer-container {
+            height: 18px;
+            margin-bottom: 4px;
+            padding-left: 4px;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: var(--accent);
+            height: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-text.alert-action {
+            color: var(--alert-accent);
+            animation: popScale 0.2s ease-out;
+        }
+
+        @keyframes popScale {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .card-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            min-height: 90px;
+            flex: 1;
+        }
+
+        .card {
+            width: 62px;
+            height: 90px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 24px;
+            font-weight: 800;
+            box-shadow: 0 6px 14px var(--shadow);
+        }
+
+        .card.hidden {
+            background: linear-gradient(135deg, #334155, #1e293b);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .card.red { color: #dc2626; }
+        .card.black { color: var(--card-text-dark); }
+
+        .controls-area {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+
+        button {
+            flex: 1;
+            border: none;
+            background: var(--btn-bg);
+            color: var(--text-main);
+            padding: 14px 0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 4px 8px var(--shadow);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:active:not(:disabled) {
+            background: #334155;
+        }
+
+        button:disabled {
+            opacity: 0.12;
+            box-shadow: none;
+        }
+
+        button.side-action {
+            width: 100%;
+            padding: 24px 0;
+            border-radius: 12px;
+        }
+        
+        button#btn-fold {
+            background: var(--btn-fold-bg);
+            color: var(--btn-fold-text);
+            border: 1px solid rgba(252, 165, 165, 0.15);
+        }
+        button#btn-fold:active:not(:disabled) {
+            background: #5c1d1d;
+        }
+
+        button#btn-main-action {
+            font-size: 14px;
+            color: #ffffff;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        button#btn-main-action.state-check {
+            background: var(--btn-check-bg);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        button#btn-main-action.state-check:active:not(:disabled) {
+            background: #1d4ed8;
+        }
+        button#btn-main-action.state-call {
+            background: var(--btn-call-bg);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        }
+        button#btn-main-action.state-call:active:not(:disabled) {
+            background: #b45309;
+        }
+        button#btn-main-action.state-confirm {
+            background: var(--btn-confirm-bg);
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+        }
+        button#btn-main-action.state-confirm:active:not(:disabled) {
+            background: #15803d;
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        button.primary:active:not(:disabled) {
+            background: #0ea5e9;
+        }
+
+        button#btn-cancel-bet {
+            flex: none;
+            width: 95px;
+            background: var(--btn-cancel-bg);
+            color: #ffffff;
+            display: none;
+        }
+        button#btn-cancel-bet:active:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        button.quick-bet {
+            padding: 12px 0;
+            font-size: 13px;
+            background: #1e293b;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        button.quick-bet:active:not(:disabled) {
+            background: #0c4a6e;
+        }
+
+        .game-over-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 13, 16, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            z-index: 100;
+            padding: 32px;
+            text-align: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .game-over-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .game-over-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--alert-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-over-desc {
+            font-size: 16px;
+            color: var(--text-main);
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+        .restart-btn {
+            background: var(--accent);
+            color: #000000;
+            font-size: 16px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 800;
+            box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4);
+            max-width: 240px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <div id="opp-chips" class="header-chips">Opponent: $1000</div>
+        <div class="pot-display-container">
+            <div class="pot-display" id="pot-size">Pot: $0</div>
+            <div class="payout-notice" id="payout-status"></div>
+        </div>
+        <div id="my-chips" class="header-chips">You: $1000</div>
+    </div>
+
+    <div class="play-area">
+        <div class="player-zone">
+            <div id="opp-dealer-container"><div id="opp-puck" class="dealer-puck">D</div></div>
+            <div class="card-row" id="opp-cards" style="flex:none; width:100%;"></div>
+            <span class="status-text" id="opp-status"></span>
+        </div>
+
+        <div class="player-zone">
+            <div class="card-row" id="community-cards" style="flex:none; width:100%;"></div>
+            <span class="status-text" id="game-status">Tap Deal</span>
+        </div>
+
+        <div class="player-zone">
+            <span class="status-text" id="player-status"></span>
+            
+            <div class="player-action-row">
+                <div class="action-btn-wrapper left-side">
+                    <div id="player-dealer-container"><div id="player-puck" class="dealer-puck">D</div></div>
+                    <button id="btn-fold" class="side-action" onclick="handleFold()">Fold</button>
+                </div>
+                <div class="card-row" id="player-cards"></div>
+                <div class="action-btn-wrapper right-side">
+                    <div style="height: 18px; margin-bottom: 4px;"></div>
+                    <button id="btn-main-action" class="side-action state-check" onclick="handleMainAction()">Check</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-area">
+        <div class="btn-row">
+            <button id="btn-qb10" class="quick-bet" onclick="addBet(10)">+$10</button>
+            <button id="btn-qb20" class="quick-bet" onclick="addBet(20)">+$20</button>
+            <button id="btn-qb40" class="quick-bet" onclick="addBet(40)">+$40</button>
+            <button id="btn-qb60" class="quick-bet" onclick="addBet(60)">+$60</button>
+        </div>
+        
+        <div class="btn-row">
+            <button id="btn-cancel-bet" onclick="handleCancelBet()">✕ Reset</button>
+            <button id="btn-allin" class="primary" onclick="addBet('allin')">All-In</button>
+            <button id="btn-deal" class="primary" onclick="handleDeal()">Deal</button>
+        </div>
+    </div>
+
+    <div class="game-over-overlay" id="game-over-screen">
+        <div class="game-over-title" id="go-title">Game Over</div>
+        <div class="game-over-desc" id="go-desc">You ran out of chips!</div>
+        <button class="restart-btn" onclick="resetEntireMatch()">Play Again</button>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const now = audioCtx.currentTime;
+
+            if (type === 'chip') { 
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.06);
+
+            } else if (type === 'alert-bet') {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc1.type = 'sine';
+                osc2.type = 'sine';
+                
+                osc1.frequency.setValueAtTime(587.33, now); 
+                osc2.frequency.setValueAtTime(880.00, now); 
+                
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                
+                osc1.connect(gain);
+                osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc1.start(now);
+                osc2.start(now);
+                osc1.stop(now + 0.25);
+                osc2.stop(now + 0.25);
+
+            } else if (type === 'card') { 
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+
+                gain.gain.setValueAtTime(0.25, now); 
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.08);
+
+            } else if (type === 'win') {
+                const melody = [523.25, 659.25, 783.99, 987.77];
+                melody.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const triggerTime = now + (idx * 0.05);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, triggerTime);
+                    gain.gain.setValueAtTime(0.2, triggerTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, triggerTime + 0.15);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(triggerTime);
+                    osc.stop(triggerTime + 0.15);
+                });
+            }
+        }
+
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        
+        let state = {
+            playerChips: 1000, oppChips: 1000, pot: 0,
+            playerHand: [], oppHand: [], community: [], deck: [],
+            currentBet: 0, playerCurrentBet: 0, oppCurrentBet: 0,
+            pendingBetSelection: 0,
+            round: 4, isPlayerTurn: false, dealer: -1 
+        };
+
+        function evaluateHandScore(cards) {
+            const values = cards.map(c => VALUES.indexOf(c.val));
+            values.sort((a,b) => b - a);
+            
+            let counts = {};
+            values.forEach(v => counts[v] = (counts[v] || 0) + 1);
+            
+            let pairs = [], trips = [];
+            for (let v in counts) {
+                if (counts[v] === 3) trips.push(Number(v));
+                if (counts[v] === 2) pairs.push(Number(v));
+            }
+            pairs.sort((a,b) => b - a);
+
+            if (trips.length > 0 && (pairs.length > 0 || trips.length > 1)) {
+                const pairValue = trips.length > 1 ? trips[1] : pairs[0];
+                return { score: 500 + trips[0] * 15 + pairValue, label: "Full House" };
+            }
+            if (trips.length > 0) return { score: 400 + trips[0], label: "Trips" };
+            if (pairs.length >= 2) return { score: 300 + pairs[0] * 2 + pairs[1], label: "2 Pair" };
+            if (pairs.length === 1) return { score: 200 + pairs[0], label: "Pair" };
+            return { score: 100 + values[0], label: `High ${VALUES[values[0]]}` };
+        }
+
+        function createDeck() {
+            let deck = [];
+            for (let suit of SUITS) {
+                for (let val of VALUES) {
+                    deck.push({ val, suit, color: (suit==='♥'||suit==='♦') ? 'red' : 'black' });
+                }
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        }
+
+        function renderCard(card, isHidden = false) {
+            if (isHidden) return `<div class="card hidden"></div>`;
+            return `<div class="card ${card.color}"><div>${card.val}</div><div style="font-size:16px; font-weight:normal;">${card.suit}</div></div>`;
+        }
+
+        function updateUI() {
+            document.getElementById('my-chips').innerText = `You: $${state.playerChips}`;
+            document.getElementById('opp-chips').innerText = `Opp: $${state.oppChips}`;
+            document.getElementById('pot-size').innerText = `Pot: $${state.pot}`;
+
+            document.getElementById('player-cards').innerHTML = state.playerHand.map(c => renderCard(c)).join('');
+            document.getElementById('opp-cards').innerHTML = state.oppHand.map((c, i) => renderCard(c, state.round < 4)).join('');
+            document.getElementById('community-cards').innerHTML = state.community.map(c => renderCard(c)).join('');
+            
+            const playerPuck = document.getElementById('player-puck');
+            const oppPuck = document.getElementById('opp-puck');
+            
+            if (state.dealer === 0) {
+                playerPuck.style.visibility = 'visible';
+                oppPuck.style.visibility = 'hidden';
+            } else if (state.dealer === 1) {
+                playerPuck.style.visibility = 'hidden';
+                oppPuck.style.visibility = 'visible';
+            } else {
+                playerPuck.style.visibility = 'hidden';
+                oppPuck.style.visibility = 'hidden';
+            }
+
+            const activeCall = state.currentBet - state.playerCurrentBet;
+            
+            document.getElementById('btn-deal').disabled = state.round !== 4 && state.pot > 0;
+            document.getElementById('btn-fold').disabled = !state.isPlayerTurn;
+            
+            const mainActionBtn = document.getElementById('btn-main-action');
+            mainActionBtn.disabled = !state.isPlayerTurn;
+            
+            // TRANSFORMATION: Check/Call button transforms if there's a pending selection
+            if (state.pendingBetSelection > 0) {
+                const labelType = state.currentBet > 0 ? "Raise" : "Bet";
+                mainActionBtn.innerText = `Confirm ${labelType} ($${state.pendingBetSelection})`;
+                mainActionBtn.className = "side-action state-confirm";
+                
+                const maxAffordable = Math.min(state.playerChips, state.oppChips);
+                const legalMin = state.currentBet > 0 ? (state.currentBet + 10) : 10;
+                mainActionBtn.disabled = (state.pendingBetSelection < legalMin && state.pendingBetSelection < maxAffordable + state.playerCurrentBet);
+            } else {
+                if (activeCall > 0) {
+                    mainActionBtn.innerText = `Call $${activeCall}`;
+                    mainActionBtn.className = "side-action state-call";
+                } else {
+                    mainActionBtn.innerText = "Check";
+                    mainActionBtn.className = "side-action state-check";
+                }
+            }
+            
+            const maxAffordable = Math.min(state.playerChips, state.oppChips);
+            
+            document.getElementById('btn-qb10').disabled = !state.isPlayerTurn || maxAffordable < 10;
+            document.getElementById('btn-qb20').disabled = !state.isPlayerTurn || maxAffordable < 20;
+            document.getElementById('btn-qb40').disabled = !state.isPlayerTurn || maxAffordable < 40;
+            document.getElementById('btn-qb60').disabled = !state.isPlayerTurn || maxAffordable < 60;
+            document.getElementById('btn-allin').disabled = !state.isPlayerTurn || maxAffordable <= 0;
+
+            const cancelBtn = document.getElementById('btn-cancel-bet');
+            if (state.pendingBetSelection > 0) {
+                cancelBtn.style.display = "block";
+            } else {
+                cancelBtn.style.display = "none";
+            }
+
+            if (state.round === 4) {
+                document.getElementById('btn-deal').disabled = false;
+            }
+        }
+
+        function handleMainAction() {
+            // Decides task route based on button transformation state
+            if (state.pendingBetSelection > 0) {
+                handleConfirmBet();
+            } else {
+                const activeCall = state.currentBet - state.playerCurrentBet;
+                if (activeCall > 0) {
+                    handleCall();
+                } else {
+                    handleCheck();
+                }
+            }
+        }
+
+        function handleDeal() {
+            if (state.playerChips <= 0 || state.oppChips <= 0) {
+                checkBankruptcy();
+                return;
+            }
+
+            document.getElementById('payout-status').innerText = "";
+            document.getElementById('payout-status').className = "payout-notice";
+
+            playSound('card');
+            state.deck = createDeck();
+            state.playerHand = [state.deck.pop(), state.deck.pop()];
+            state.oppHand = [state.deck.pop(), state.deck.pop()];
+            state.community = [];
+            state.round = 0;
+            
+            const blindAmount = Math.min(20, state.playerChips, state.oppChips);
+            state.pot = blindAmount * 2; 
+            state.playerChips -= blindAmount;
+            state.oppChips -= blindAmount;
+            
+            state.playerCurrentBet = blindAmount;
+            state.oppCurrentBet = blindAmount;
+            state.currentBet = blindAmount;
+            state.pendingBetSelection = 0;
+            
+            const pStatus = document.getElementById('player-status');
+            const oStatus = document.getElementById('opp-status');
+            pStatus.innerText = ""; pStatus.className = "status-text";
+            oStatus.innerText = ""; oStatus.className = "status-text";
+            document.getElementById('game-status').innerText = "Pre-Flop";
+
+            state.dealer = state.dealer === 0 ? 1 : 0;
+            state.isPlayerTurn = state.dealer === 0;
+
+            updateUI();
+            if (!state.isPlayerTurn) setTimeout(opponentTurn, 1000);
+        }
+
+        function addBet(value) {
+            if (!state.isPlayerTurn) return;
+            playSound('chip');
+
+            const maxAffordable = Math.min(state.playerChips, state.oppChips);
+            const absoluteCap = maxAffordable + state.playerCurrentBet;
+
+            if (value === 'allin') {
+                state.pendingBetSelection = absoluteCap;
+            } else {
+                if (state.pendingBetSelection === 0) {
+                    state.pendingBetSelection = Math.max(state.currentBet, state.playerCurrentBet);
+                }
+                state.pendingBetSelection += value;
+                if (state.pendingBetSelection > absoluteCap) {
+                    state.pendingBetSelection = absoluteCap;
+                }
+            }
+            updateUI();
+        }
+
+        function handleCancelBet() {
+            playSound('card');
+            state.pendingBetSelection = 0;
+            updateUI();
+        }
+
+        function handleConfirmBet() {
+            if (!state.isPlayerTurn || state.pendingBetSelection === 0) return;
+
+            playSound('alert-bet');
+            const modeLabel = state.currentBet > 0 ? 'Raise' : 'Bet';
+            const addedToPot = state.pendingBetSelection - state.playerCurrentBet;
+            
+            state.playerChips -= addedToPot;
+            state.pot += addedToPot;
+            state.playerCurrentBet = state.pendingBetSelection;
+            state.currentBet = state.pendingBetSelection;
+
+            const pStatus = document.getElementById('player-status');
+            pStatus.innerText = `${modeLabel} $${state.playerCurrentBet}`;
+            pStatus.className = "status-text alert-action"; 
+            
+            state.pendingBetSelection = 0;
+            state.isPlayerTurn = false;
+            updateUI();
+            setTimeout(opponentTurn, 1000);
+        }
+
+        function handleCall() {
+            playSound('chip');
+            state.pendingBetSelection = 0;
+            const callAmount = state.currentBet - state.playerCurrentBet;
+            state.playerChips -= callAmount;
+            state.pot += callAmount;
+            state.playerCurrentBet = state.currentBet;
+            
+            const pStatus = document.getElementById('player-status');
+            pStatus.innerText = "Call";
+            pStatus.className = "status-text";
+            advanceGameState();
+        }
+
+        function handleCheck() {
+            playSound('chip');
+            state.pendingBetSelection = 0;
+            const pStatus = document.getElementById('player-status');
+            pStatus.innerText = "Check";
+            pStatus.className = "status-text";
+            if (state.dealer === 1 && state.isPlayerTurn) {
+                advanceGameState();
+            } else {
+                state.isPlayerTurn = false;
+                updateUI();
+                setTimeout(opponentTurn, 1000);
+            }
+        }
+
+        function handleFold() {
+            playSound('card');
+            state.pendingBetSelection = 0;
+            
+            const payoutNotice = document.getElementById('payout-status');
+            payoutNotice.innerText = `Opponent +$${state.pot}`;
+            payoutNotice.className = "payout-notice lose";
+
+            state.oppChips += state.pot;
+            document.getElementById('game-status').innerText = "Folded.";
+            endHand();
+        }
+
+        function opponentTurn() {
+            const toCall = state.currentBet - state.oppCurrentBet;
+            const oStatus = document.getElementById('opp-status');
+
+            if (state.playerChips === 0) {
+                if (toCall > 0) {
+                    executeOpponentCall(toCall);
+                } else {
+                    playSound('chip');
+                    oStatus.innerText = "Check";
+                    oStatus.className = "status-text";
+                    setTimeout(advanceGameState, 1000);
+                }
+                return;
+            }
+
+            const oppCombo = evaluateHandScore([...state.oppHand, ...state.community]);
+
+            if (toCall > 0) {
+                if (oppCombo.score >= 300) { 
+                    if (Math.random() > 0.4 && state.oppChips > toCall * 2) {
+                        const rawRaise = state.currentBet + Math.floor(state.pot * 0.5);
+                        const raiseAmt = Math.max(state.currentBet + 10, Math.round(rawRaise / 10) * 10);
+                        executeOpponentBet(raiseAmt, "Raise");
+                    } else {
+                        executeOpponentCall(toCall);
+                    }
+                } else if (oppCombo.score >= 200) {
+                    if (Math.random() > 0.8 && state.oppChips > toCall * 2) {
+                        const raiseAmt = state.currentBet + 40;
+                        executeOpponentBet(raiseAmt, "Raise");
+                    } else {
+                        executeOpponentCall(toCall);
+                    }
+                } else if (oppCombo.score > 112 || Math.random() > 0.5) {
+                    executeOpponentCall(toCall);
+                } else {
+                    playSound('card');
+                    
+                    const payoutNotice = document.getElementById('payout-status');
+                    payoutNotice.innerText = `You +$${state.pot}`;
+                    payoutNotice.className = "payout-notice win";
+
+                    state.playerChips += state.pot;
+                    document.getElementById('game-status').innerText = "Opponent Folds!";
+                    oStatus.innerText = "Fold";
+                    oStatus.className = "status-text";
+                    endHand();
+                }
+            } else {
+                if (oppCombo.score >= 300) {
+                    const rawBet = Math.max(40, Math.floor(state.pot * 0.75));
+                    const betAmt = Math.round(rawBet / 10) * 10;
+                    executeOpponentBet(betAmt, "Bet");
+                } else if (oppCombo.score >= 200 && Math.random() > 0.3) {
+                    const rawBet = Math.max(20, Math.floor(state.pot * 0.5));
+                    const betAmt = Math.round(rawBet / 10) * 10;
+                    executeOpponentBet(betAmt, "Bet");
+                } else if (Math.random() > 0.85) {
+                    executeOpponentBet(30, "Bet");
+                } else {
+                    playSound('chip');
+                    oStatus.innerText = "Check";
+                    oStatus.className = "status-text";
+                    if (state.dealer === 0) {
+                        setTimeout(advanceGameState, 1000);
+                    } else {
+                        state.isPlayerTurn = true;
+                        updateUI();
+                    }
+                }
+            }
+        }
+
+        function executeOpponentCall(toCall) {
+            playSound('chip');
+            state.oppChips -= toCall;
+            state.pot += toCall;
+            state.oppCurrentBet = state.currentBet;
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = "Call";
+            oStatus.className = "status-text";
+            setTimeout(advanceGameState, 1000);
+        }
+
+        function executeOpponentBet(amount, typeLabel) {
+            playSound('alert-bet');
+            let targetAmount = Math.round(amount / 10) * 10;
+            const absoluteCap = Math.min(state.oppChips, state.playerChips) + state.oppCurrentBet;
+            
+            if (targetAmount > absoluteCap) {
+                targetAmount = absoluteCap;
+            }
+            
+            const addedToPot = targetAmount - state.oppCurrentBet;
+            
+            state.oppChips -= addedToPot;
+            state.pot += addedToPot;
+            state.oppCurrentBet = targetAmount;
+            state.currentBet = targetAmount;
+            
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = `${typeLabel} $${targetAmount}`;
+            oStatus.className = "status-text alert-action"; 
+            
+            state.isPlayerTurn = true;
+            updateUI();
+        }
+
+        function advanceGameState() {
+            state.playerCurrentBet = 0;
+            state.oppCurrentBet = 0;
+            state.currentBet = 0;
+            state.pendingBetSelection = 0;
+            
+            state.round++;
+            playSound('card');
+
+            document.getElementById('player-status').className = "status-text";
+            document.getElementById('opp-status').className = "status-text";
+
+            if (state.round === 1) {
+                state.community.push(state.deck.pop(), state.deck.pop(), state.deck.pop());
+                document.getElementById('game-status').innerText = "Flop";
+            } else if (state.round === 2) {
+                state.community.push(state.deck.pop());
+                document.getElementById('game-status').innerText = "Turn";
+            } else if (state.round === 3) {
+                state.community.push(state.deck.pop());
+                document.getElementById('game-status').innerText = "River";
+            } else if (state.round === 4) {
+                determineWinner();
+                return;
+            }
+
+            if (state.playerChips === 0) {
+                state.isPlayerTurn = false;
+                updateUI();
+                setTimeout(opponentTurn, 1000);
+            } else {
+                state.isPlayerTurn = state.dealer === 0;
+                updateUI();
+                if (!state.isPlayerTurn) setTimeout(opponentTurn, 1000);
+            }
+        }
+
+        function determineWinner() {
+            state.round = 4;
+            const pScore = evaluateHandScore([...state.playerHand, ...state.community]);
+            const oScore = evaluateHandScore([...state.oppHand, ...state.community]);
+            
+            let msg = "";
+            const payoutNotice = document.getElementById('payout-status');
+
+            if (pScore.score > oScore.score) {
+                payoutNotice.innerText = `You +$${state.pot}`;
+                payoutNotice.className = "payout-notice win";
+                state.playerChips += state.pot;
+                msg = `You Win! (${pScore.label})`;
+                playSound('win');
+            } else if (oScore.score > pScore.score) {
+                payoutNotice.innerText = `Opponent +$${state.pot}`;
+                payoutNotice.className = "payout-notice lose";
+                state.oppChips += state.pot;
+                msg = `Opp Wins! (${oScore.label})`;
+            } else {
+                const splitAmt = state.pot / 2;
+                payoutNotice.innerText = `Split +$${splitAmt}`;
+                payoutNotice.className = "payout-notice split";
+                state.playerChips += splitAmt;
+                state.oppChips += splitAmt;
+                msg = "Split!";
+            }
+
+            document.getElementById('game-status').innerText = msg;
+            endHand();
+        }
+
+        function endHand() {
+            state.isPlayerTurn = false;
+            state.round = 4;
+            state.pot = 0; 
+            updateUI();
+            setTimeout(checkBankruptcy, 1200);
+        }
+
+        function checkBankruptcy() {
+            if (state.playerChips <= 0) {
+                showGameOverScreen("Opponent Wins Match", "You ran out of chips! The bot cleaned you out.");
+            } else if (state.oppChips <= 0) {
+                showGameOverScreen("Victory Is Yours!", "Fantastic! You successfully reduced the opponent to $0.");
+                playSound('win');
+            }
+        }
+
+        function showGameOverScreen(title, message) {
+            document.getElementById('go-title').innerText = title;
+            document.getElementById('go-desc').innerText = message;
+            document.getElementById('game-over-screen').classList.add('show');
+        }
+
+        function resetEntireMatch() {
+            state.playerChips = 1000;
+            state.oppChips = 1000;
+            state.pot = 0;
+            state.playerHand = [];
+            state.oppHand = [];
+            state.community = [];
+            state.round = 4; 
+            state.dealer = -1; 
+            
+            document.getElementById('player-status').innerText = "";
+            document.getElementById('opp-status').innerText = "";
+            document.getElementById('game-status').innerText = "Tap Deal";
+            document.getElementById('payout-status').innerText = "";
+            
+            document.getElementById('game-over-screen').classList.remove('show');
+            updateUI();
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
