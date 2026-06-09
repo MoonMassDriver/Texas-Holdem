@@ -133,12 +133,8 @@
             flex-direction: column;
             position: relative;
         }
-        .action-btn-wrapper.left-side {
-            justify-content: flex-start;
-        }
-        .action-btn-wrapper.right-side {
-            justify-content: flex-end;
-        }
+        .action-btn-wrapper.left-side { justify-content: flex-start; }
+        .action-btn-wrapper.right-side { justify-content: flex-end; }
 
         .dealer-puck {
             width: 18px;
@@ -328,7 +324,15 @@
             background: #0c4a6e;
         }
 
-        .game-over-overlay {
+        button.utility-btn {
+            background: #1e293b;
+            color: var(--text-muted);
+            border: 1px dashed rgba(255,255,255,0.15);
+            padding: 10px 0;
+            font-size: 13px;
+        }
+
+        .game-over-overlay, .modal-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(9, 13, 16, 0.95);
@@ -345,7 +349,7 @@
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
-        .game-over-overlay.show {
+        .game-over-overlay.show, .modal-overlay.show {
             visibility: visible;
             opacity: 1;
         }
@@ -389,6 +393,64 @@
         }
         .secondary-btn:active {
             background: #475569;
+        }
+
+        /* Rankings Cheat Sheet Styling */
+        .rankings-content {
+            background: #1e293b;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 350px;
+            max-height: 80dvh;
+            overflow-y: auto;
+            padding: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+        }
+
+        .rankings-header {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+
+        .rankings-subheader {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--alert-accent);
+            margin-top: 16px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            padding-bottom: 4px;
+        }
+
+        .rank-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .rank-item:last-child { border-bottom: none; }
+
+        .rank-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .rank-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
         }
 
         /* Floating back button hidden by default during review */
@@ -460,6 +522,34 @@
             <button id="btn-cancel-bet" onclick="handleCancelBet()">✕ Reset</button>
             <button id="btn-allin" class="primary" onclick="addBet('allin')">All-In</button>
             <button id="btn-deal" class="primary" onclick="handleDeal()">Deal</button>
+        </div>
+
+        <div class="btn-row">
+            <button class="utility-btn" onclick="toggleRankings(true)">📋 Hand Rankings Cheat Sheet</button>
+        </div>
+    </div>
+
+    <!-- Hand Rankings Modal -->
+    <div class="modal-overlay" id="rankings-modal" onclick="toggleRankings(false)">
+        <div class="rankings-content" onclick="event.stopPropagation()">
+            <div class="rankings-header">Hand Rankings (Strongest to Weakest)</div>
+            <div class="rank-item"><div class="rank-title">1. Royal Flush</div><div class="rank-desc">A, K, Q, J, 10 of the exact same suit.</div></div>
+            <div class="rank-item"><div class="rank-title">2. Straight Flush</div><div class="rank-desc">Five consecutive cards of the same suit.</div></div>
+            <div class="rank-item"><div class="rank-title">3. Four of a Kind</div><div class="rank-desc">Four cards of identical numerical value.</div></div>
+            <div class="rank-item"><div class="rank-title">4. Full House</div><div class="rank-desc">Three of a kind combined with a pair.</div></div>
+            <div class="rank-item"><div class="rank-title">5. Flush</div><div class="rank-desc">Any five cards of the same suit, not in sequence.</div></div>
+            <div class="rank-item"><div class="rank-title">6. Straight</div><div class="rank-desc">Five sequential cards of mixed suits.</div></div>
+            <div class="rank-item"><div class="rank-title">7. Three of a Kind (Trips)</div><div class="rank-desc">Three cards matching the same numerical value.</div></div>
+            <div class="rank-item"><div class="rank-title">8. Two Pair</div><div class="rank-desc">Two distinct numerical pairs.</div></div>
+            <div class="rank-item"><div class="rank-title">9. One Pair</div><div class="rank-desc">Two cards matching the same numerical value.</div></div>
+            <div class="rank-item"><div class="rank-title">10. High Card</div><div class="rank-desc">No hands match; highest rank card wins.</div></div>
+            
+            <div class="rankings-subheader">Tiebreakers & Rules FAQ</div>
+            <div class="rank-item"><div class="rank-title">Do Suits Matter for Ties?</div><div class="rank-desc">No. Hearts, Diamonds, Clubs, and Spades are all perfectly equal in value. If two players have the exact same straight or flush strength, the pot is split evenly.</div></div>
+            <div class="rank-item"><div class="rank-title">Can an Ace Start a Low Straight?</div><div class="rank-desc">Yes! An Ace can act as the lowest card to create an <strong>A-2-3-4-5</strong> straight (often called a "Wheel"). It can also be the high card in a <strong>10-J-Q-K-A</strong> straight, but it cannot wrap around (e.g., Q-K-A-2-3 is illegal).</div></div>
+            <div class="rank-item"><div class="rank-title">What is a "Kicker" Tiebreaker?</div><div class="rank-desc">If you and the bot share the same hand tier (like both having the same Pair of Kings), the game looks at the remaining highest unused cards in your 5-card combination—this is your "Kicker." The player holding the higher kicker wins the pot.</div></div>
+            
+            <button class="secondary-btn" style="margin-top:14px; width:100%; max-width:none;" onclick="toggleRankings(false)">Close</button>
         </div>
     </div>
 
@@ -561,10 +651,18 @@
             handsDealtCount: 0,
             nextBluffHand: 0
         };
+
         function pickNextBluffTarget() {
             state.nextBluffHand = state.handsDealtCount + Math.floor(Math.random() * 15) + 1;
         }
         pickNextBluffTarget();
+
+        function toggleRankings(show) {
+            playSound('card');
+            const modal = document.getElementById('rankings-modal');
+            if (show) modal.classList.add('show');
+            else modal.classList.remove('show');
+        }
 
         function evaluateHandScore(cards) {
             const values = cards.map(c => VALUES.indexOf(c.val));
@@ -575,7 +673,6 @@
             cards.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
             let flushSuit = Object.keys(suitCounts).find(s => suitCounts[s] >= 5);
             if (flushSuit) {
-                // Gather value ranks that match the flush suit and sort descending
                 let flushValues = cards.filter(c => c.suit === flushSuit).map(c => VALUES.indexOf(c.val));
                 flushValues.sort((a,b) => b - a);
                 return { score: 600 + flushValues[0], label: "Flush" };
@@ -583,10 +680,8 @@
 
             // 2. Check for Straight
             let uniqueVals = Array.from(new Set(values)).sort((a, b) => b - a);
-            // Handle Ace-low straight configuration (5, 4, 3, 2, A)
             if (uniqueVals.includes(12)) {
-                uniqueVals.push(-1);
-                // Treat Ace rank index 12 also as -1
+                uniqueVals.push(-1); // Add Ace as low value (-1) for low straight detection
             }
             
             let straightHighCard = -1;
@@ -861,6 +956,36 @@
             const oppCombo = evaluateHandScore([...state.oppHand, ...state.community]);
             
             if (toCall > 0) {
+                // GAME THEORY / MATHEMATICAL BET DEFENSE ARCHITECTURE
+                const isPlayerAllIn = (state.playerChips === 0 || toCall >= state.oppChips);
+
+                if (isPlayerAllIn && oppCombo.score < 600) { 
+                    // Calculate Pot Odds & MDF (Minimum Defense Frequency)
+                    const mdf = state.pot / (state.pot + toCall);
+                    
+                    // Modify MDF based on Bot's state. If stack is low, increase willingness to call (anti-bullying override)
+                    let adjustedMdf = mdf;
+                    if (state.oppChips <= 250) {
+                        adjustedMdf += 0.25; 
+                    }
+
+                    // If the mathematical MDF requirement is restrictive and a random check fails, the bot folds vulnerable holdings
+                    if (Math.random() > adjustedMdf) {
+                        playSound('card');
+                        const payoutNotice = document.getElementById('payout-status');
+                        payoutNotice.innerText = `You +$${state.pot}`;
+                        payoutNotice.className = "payout-notice win";
+
+                        state.playerChips += state.pot;
+                        // PRIVACY RETAINED: The reason message has been updated from "Bot folds to risk ratio!" to a clean, generic poker update.
+                        document.getElementById('game-status').innerText = "Opponent Folds!";
+                        oStatus.innerText = "Fold";
+                        oStatus.className = "status-text";
+                        endHand();
+                        return;
+                    }
+                }
+
                 if (isBluffHand) {
                     if (Math.random() > 0.3 && state.oppChips > toCall * 2) {
                         const rawRaise = state.currentBet + Math.floor(state.pot * 0.6);
@@ -1064,7 +1189,6 @@
             document.getElementById('game-over-screen').classList.add('show');
         }
 
-        // Feature additions: temporarily hide the overlay to let players look at the table
         function reviewFinalHand() {
             document.getElementById('game-over-screen').classList.remove('show');
             document.getElementById('btn-return-results').style.display = "block";
