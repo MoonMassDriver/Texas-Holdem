@@ -791,9 +791,19 @@
 
             const activeCall = state.currentBet - state.playerCurrentBet;
             document.getElementById('btn-deal').disabled = state.round !== 4 && state.pot > 0;
-            document.getElementById('btn-fold').disabled = !state.isPlayerTurn;
+            
             const mainActionBtn = document.getElementById('btn-main-action');
-            mainActionBtn.disabled = !state.isPlayerTurn;
+            const foldBtn = document.getElementById('btn-fold');
+
+            if (state.playerChips === 0 && state.isPlayerTurn) {
+                foldBtn.disabled = true;
+                mainActionBtn.disabled = true;
+                mainActionBtn.innerText = "All-In";
+                document.getElementById('player-status').innerText = "All-In";
+            } else {
+                foldBtn.disabled = !state.isPlayerTurn;
+                mainActionBtn.disabled = !state.isPlayerTurn;
+            }
 
             if (state.pendingBetSelection > 0) {
                 const labelType = state.currentBet > 0 ? "Raise" : "Bet";
@@ -810,7 +820,7 @@
                     mainActionBtn.innerText = `Min ${labelType} $${Math.min(minLegal, maxAffordable)}`;
                     mainActionBtn.disabled = true;
                 }
-            } else {
+            } else if (state.playerChips > 0 || !state.isPlayerTurn) {
                 if (activeCall > 0) {
                     mainActionBtn.innerText = `Call $${activeCall}`;
                     mainActionBtn.className = "side-action state-call";
@@ -986,6 +996,7 @@
         }
 
         function handleFold() {
+            if (state.playerChips === 0) return;
             playSound('card');
             state.pendingBetSelection = 0;
             const payoutNotice = document.getElementById('payout-status');
@@ -997,6 +1008,17 @@
         }
 
         function opponentTurn() {
+            // FIX: If the player has no chips, the opponent cannot raise.[cite: 1]
+            if (state.playerChips === 0) {
+                const toCall = state.currentBet - state.oppCurrentBet;
+                if (toCall > 0) {
+                    executeOpponentCall(toCall);
+                } else {
+                    executeOpponentCheck();
+                }
+                return;
+            }
+
             const toCall = state.currentBet - state.oppCurrentBet;
             const oStatus = document.getElementById('opp-status');
 
@@ -1128,9 +1150,9 @@
 
         function executeOpponentBet(amount, typeLabel) {
             playSound('alert-bet');
-            let minLegal = state.currentBet + state.lastRaiseIncrement;
-            if (state.currentBet === 0) minLegal = 20;
+            let minLegal = state.currentBet + (state.currentBet === 0 ? 20 : state.lastRaiseIncrement);
             let targetAmount = Math.max(amount, minLegal);
+            targetAmount = Math.ceil(targetAmount / 10) * 10;
             let addedToPot = targetAmount - state.oppCurrentBet;
 
             if (addedToPot > state.oppChips) {
@@ -1221,8 +1243,6 @@
                 return;
             }
 
-            // --- THE BUG FIX ---
-            // Force player control off so buttons don't flash active during all-in cascades
             if (state.playerChips === 0 || state.oppChips === 0) {
                 state.isPlayerTurn = false; 
                 updateUI();
