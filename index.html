@@ -19,7 +19,7 @@
             --btn-fold-text: #fca5a5;
             --btn-check-bg: #2563eb;
             --btn-call-bg: #d97706; 
-            --btn-confirm-bg: #16a34a; /* Vibrant green for confirm */
+            --btn-confirm-bg: #16a34a; 
             --btn-cancel-bg: #dc2626;
             --shadow: rgba(0, 0, 0, 0.6);
             --win-green: #22c55e;
@@ -324,12 +324,30 @@
             background: #0c4a6e;
         }
 
-        button.utility-btn {
-            background: #1e293b;
-            color: var(--text-muted);
-            border: 1px dashed rgba(255,255,255,0.15);
-            padding: 10px 0;
+        .utility-btn-container {
+            display: flex;
+            justify-content: flex-start;
+            width: 100%;
+            margin-top: 4px;
+            padding-left: 2px;
+        }
+
+        .compact-info-btn {
+            background: transparent;
+            color: var(--accent);
+            border: none;
+            box-shadow: none;
+            padding: 4px 8px;
             font-size: 13px;
+            font-weight: 600;
+            text-decoration: underline;
+            cursor: pointer;
+            width: auto;
+            flex: none;
+        }
+        .compact-info-btn:active {
+            background: transparent;
+            color: var(--text-main);
         }
 
         .game-over-overlay, .modal-overlay {
@@ -354,48 +372,6 @@
             opacity: 1;
         }
 
-        .game-over-title {
-            font-size: 32px;
-            font-weight: 900;
-            color: var(--alert-accent);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .game-over-desc {
-            font-size: 16px;
-            color: var(--text-main);
-            max-width: 280px;
-            line-height: 1.5;
-        }
-
-        .restart-btn {
-            background: var(--accent);
-            color: #000000;
-            font-size: 16px;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-weight: 800;
-            box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4);
-            max-width: 240px;
-            width: 100%;
-        }
-
-        .secondary-btn {
-            background: #334155;
-            color: var(--text-main);
-            font-size: 14px;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-weight: 700;
-            max-width: 240px;
-            width: 100%;
-        }
-        .secondary-btn:active {
-            background: #475569;
-        }
-
-        /* Rankings Cheat Sheet Styling */
         .rankings-content {
             background: #1e293b;
             border-radius: 16px;
@@ -453,7 +429,47 @@
             line-height: 1.4;
         }
 
-        /* Floating back button hidden by default during review */
+        .game-over-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--alert-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-over-desc {
+            font-size: 16px;
+            color: var(--text-main);
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+        .restart-btn {
+            background: var(--accent);
+            color: #000000;
+            font-size: 16px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 800;
+            box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4);
+            max-width: 240px;
+            width: 100%;
+        }
+
+        .secondary-btn {
+            background: #334155;
+            color: var(--text-main);
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            max-width: 240px;
+            width: 100%;
+        }
+        .secondary-btn:active {
+            background: #475569;
+        }
+
         #btn-return-results {
             position: absolute;
             top: calc(env(safe-area-inset-top) + 8px);
@@ -524,15 +540,26 @@
             <button id="btn-deal" class="primary" onclick="handleDeal()">Deal</button>
         </div>
 
-        <div class="btn-row">
-            <button class="utility-btn" onclick="toggleRankings(true)">📋 Hand Rankings Cheat Sheet</button>
+        <div class="utility-btn-container">
+            <button class="compact-info-btn" onclick="toggleRankings(true)">Hand Order & FAQ</button>
         </div>
     </div>
 
-    <!-- Hand Rankings Modal -->
     <div class="modal-overlay" id="rankings-modal" onclick="toggleRankings(false)">
         <div class="rankings-content" onclick="event.stopPropagation()">
-            <div class="rankings-header">Hand Rankings (Strongest to Weakest)</div>
+            <div class="rankings-header">Game Rules & FAQ</div>
+            
+            <div class="rankings-subheader">Blinds & Minimum Raises</div>
+            <div class="rank-item">
+                <div class="rank-title">Forced Blinds ($10 / $20)</div>
+                <div class="rank-desc">Before cards drop, the Dealer automatically posts the $10 Small Blind, and the opponent posts the $20 Big Blind. Money goes in *before* seeing cards. You can fold post-deal, but your blind is forfeit.</div>
+            </div>
+            <div class="rank-item">
+                <div class="rank-title">The Minimum Raise Rule</div>
+                <div class="rank-desc">A raise must match the current high bet PLUS increase it by at least the amount of the previous bet/raise increment. Pre-flop, since the Big Blind is $20, the first legal minimum raise size is $40 total.</div>
+            </div>
+
+            <div class="rankings-subheader">Hand Rankings</div>
             <div class="rank-item"><div class="rank-title">1. Royal Flush</div><div class="rank-desc">A, K, Q, J, 10 of the exact same suit.</div></div>
             <div class="rank-item"><div class="rank-title">2. Straight Flush</div><div class="rank-desc">Five consecutive cards of the same suit.</div></div>
             <div class="rank-item"><div class="rank-title">3. Four of a Kind</div><div class="rank-desc">Four cards of identical numerical value.</div></div>
@@ -544,10 +571,10 @@
             <div class="rank-item"><div class="rank-title">9. One Pair</div><div class="rank-desc">Two cards matching the same numerical value.</div></div>
             <div class="rank-item"><div class="rank-title">10. High Card</div><div class="rank-desc">No hands match; highest rank card wins.</div></div>
             
-            <div class="rankings-subheader">Tiebreakers & Rules FAQ</div>
-            <div class="rank-item"><div class="rank-title">Do Suits Matter for Ties?</div><div class="rank-desc">No. Hearts, Diamonds, Clubs, and Spades are all perfectly equal in value. If two players have the exact same straight or flush strength, the pot is split evenly.</div></div>
-            <div class="rank-item"><div class="rank-title">Can an Ace Start a Low Straight?</div><div class="rank-desc">Yes! An Ace can act as the lowest card to create an <strong>A-2-3-4-5</strong> straight (often called a "Wheel"). It can also be the high card in a <strong>10-J-Q-K-A</strong> straight, but it cannot wrap around (e.g., Q-K-A-2-3 is illegal).</div></div>
-            <div class="rank-item"><div class="rank-title">What is a "Kicker" Tiebreaker?</div><div class="rank-desc">If you and the bot share the same hand tier (like both having the same Pair of Kings), the game looks at the remaining highest unused cards in your 5-card combination—this is your "Kicker." The player holding the higher kicker wins the pot.</div></div>
+            <div class="rankings-subheader">Tiebreakers & Details</div>
+            <div class="rank-item"><div class="rank-title">Do Suits Matter for Ties?</div><div class="rank-desc">No. All suits are equal. If hands match completely, the pot is split evenly.</div></div>
+            <div class="rank-item"><div class="rank-title">Can an Ace Start a Low Straight?</div><div class="rank-desc">Yes! An Ace can act as the lowest card to create an A-2-3-4-5 straight.</div></div>
+            <div class="rank-item"><div class="rank-title">What is a "Kicker" Tiebreaker?</div><div class="rank-desc">If hand strengths tie (e.g. same pair), the game compares remaining highest unused hole or community cards. High kicker wins.</div></div>
             
             <button class="secondary-btn" style="margin-top:14px; width:100%; max-width:none;" onclick="toggleRankings(false)">Close</button>
         </div>
@@ -578,46 +605,30 @@
                 gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.06);
-
             } else if (type === 'alert-bet') {
                 const osc1 = audioCtx.createOscillator();
                 const osc2 = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                
-                osc1.type = 'sine';
-                osc2.type = 'sine';
-                
+                osc1.type = 'sine'; osc2.type = 'sine';
                 osc1.frequency.setValueAtTime(587.33, now); 
                 osc2.frequency.setValueAtTime(880.00, now); 
-                
                 gain.gain.setValueAtTime(0.2, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-                
-                osc1.connect(gain);
-                osc2.connect(gain);
+                osc1.connect(gain); osc2.connect(gain);
                 gain.connect(audioCtx.destination);
-                
-                osc1.start(now);
-                osc2.start(now);
-                osc1.stop(now + 0.25);
-                osc2.stop(now + 0.25);
+                osc1.start(now); osc2.start(now);
+                osc1.stop(now + 0.25); osc2.stop(now + 0.25);
             } else if (type === 'card') { 
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(250, now);
                 osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
-
                 gain.gain.setValueAtTime(0.25, now); 
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-                
-                osc.start(now);
-                osc.stop(now + 0.08);
-
+                osc.start(now); osc.stop(now + 0.08);
             } else if (type === 'win') {
                 const melody = [523.25, 659.25, 783.99, 987.77];
                 melody.forEach((freq, idx) => {
@@ -625,31 +636,26 @@
                     const gain = audioCtx.createGain();
                     const triggerTime = now + (idx * 0.05);
                     osc.type = 'sine';
-  
                     osc.frequency.setValueAtTime(freq, triggerTime);
                     gain.gain.setValueAtTime(0.2, triggerTime);
                     gain.gain.exponentialRampToValueAtTime(0.001, triggerTime + 0.15);
-                    osc.connect(gain);
-               
-                    gain.connect(audioCtx.destination);
-                    osc.start(triggerTime);
-                    osc.stop(triggerTime + 0.15);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(triggerTime); osc.stop(triggerTime + 0.15);
                 });
             }
         }
 
         const SUITS = ['♠', '♥', '♦', '♣'];
         const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        
         let state = {
             playerChips: 1000, oppChips: 1000, pot: 0,
             playerHand: [], oppHand: [], community: [], deck: [],
             currentBet: 0, playerCurrentBet: 0, oppCurrentBet: 0,
+            lastRaiseIncrement: 20, 
             pendingBetSelection: 0,
             round: 4, isPlayerTurn: false, dealer: -1,
-            
-            // BLUFF TRACKING MECHANICS
-            handsDealtCount: 0,
-            nextBluffHand: 0
+            handsDealtCount: 0, nextBluffHand: 0
         };
 
         function pickNextBluffTarget() {
@@ -665,56 +671,79 @@
         }
 
         function evaluateHandScore(cards) {
-            const values = cards.map(c => VALUES.indexOf(c.val));
-            values.sort((a,b) => b - a);
+            const indices = cards.map(c => VALUES.indexOf(c.val)).sort((a,b) => b - a);
             
-            // 1. Check for Flush
             let suitCounts = {};
             cards.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
             let flushSuit = Object.keys(suitCounts).find(s => suitCounts[s] >= 5);
+            
             if (flushSuit) {
-                let flushValues = cards.filter(c => c.suit === flushSuit).map(c => VALUES.indexOf(c.val));
-                flushValues.sort((a,b) => b - a);
-                return { score: 600 + flushValues[0], label: "Flush" };
-            }
-
-            // 2. Check for Straight
-            let uniqueVals = Array.from(new Set(values)).sort((a, b) => b - a);
-            if (uniqueVals.includes(12)) {
-                uniqueVals.push(-1); // Add Ace as low value (-1) for low straight detection
-            }
-            
-            let straightHighCard = -1;
-            for (let i = 0; i <= uniqueVals.length - 5; i++) {
-                if (uniqueVals[i] - uniqueVals[i+4] === 4) {
-                    straightHighCard = uniqueVals[i];
-                    break;
+                let flushCards = cards.filter(c => c.suit === flushSuit);
+                let fVals = Array.from(new Set(flushCards.map(c => VALUES.indexOf(c.val)))).sort((a,b) => b - a);
+                
+                if (fVals.includes(12)) fVals.push(-1); 
+                for (let i = 0; i <= fVals.length - 5; i++) {
+                    if (fVals[i] - fVals[i+4] === 4) {
+                        let highVal = fVals[i];
+                        if (highVal === 12) return { score: 900, label: "Royal Flush", tiebreakers: [12] };
+                        return { score: 800 + highVal, label: "Straight Flush", tiebreakers: [highVal] };
+                    }
                 }
-            }
-            
-            if (straightHighCard !== -1) {
-                return { score: 450 + straightHighCard, label: "Straight" };
+                let cleanFVals = fVals.filter(v => v !== -1);
+                return { score: 600, label: "Flush", tiebreakers: cleanFVals.slice(0, 5) };
             }
 
-            // 3. Setup frequency match groupings for Pairs, Trips, Full Houses
             let counts = {};
-            values.forEach(v => counts[v] = (counts[v] || 0) + 1);
-            let pairs = [], trips = [];
+            indices.forEach(v => counts[v] = (counts[v] || 0) + 1);
+            
+            let quads = [], trips = [], pairs = [], highCards = [];
             for (let v in counts) {
-                if (counts[v] === 3) trips.push(Number(v));
-                if (counts[v] === 2) pairs.push(Number(v));
+                let val = Number(v);
+                if (counts[v] === 4) quads.push(val);
+                else if (counts[v] === 3) trips.push(val);
+                else if (counts[v] === 2) pairs.push(val);
+                else highCards.push(val);
             }
-            pairs.sort((a,b) => b - a);
+            quads.sort((a,b) => b - a);
             trips.sort((a,b) => b - a);
+            pairs.sort((a,b) => b - a);
+            highCards.sort((a,b) => b - a);
+
+            if (quads.length > 0) {
+                let kicker = [...trips, ...pairs, ...highCards].sort((a,b) => b - a)[0];
+                return { score: 700, label: "Four of a Kind", tiebreakers: [quads[0], kicker] };
+            }
 
             if (trips.length > 0 && (pairs.length > 0 || trips.length > 1)) {
-                const pairValue = trips.length > 1 ? trips[1] : pairs[0];
-                return { score: 500 + trips[0] * 15 + pairValue, label: "Full House" };
+                let tripOver = trips[0];
+                let pairOver = trips.length > 1 ? trips[1] : pairs[0];
+                return { score: 500, label: "Full House", tiebreakers: [tripOver, pairOver] };
             }
-            if (trips.length > 0) return { score: 400 + trips[0], label: "Trips" };
-            if (pairs.length >= 2) return { score: 300 + pairs[0] * 2 + pairs[1], label: "2 Pair" };
-            if (pairs.length === 1) return { score: 200 + pairs[0], label: "Pair" };
-            return { score: 100 + values[0], label: `High ${VALUES[values[0]]}` };
+
+            let uniqueVals = Array.from(new Set(indices)).sort((a, b) => b - a);
+            if (uniqueVals.includes(12)) uniqueVals.push(-1);
+            for (let i = 0; i <= uniqueVals.length - 5; i++) {
+                if (uniqueVals[i] - uniqueVals[i+4] === 4) {
+                    return { score: 450, label: "Straight", tiebreakers: [uniqueVals[i]] };
+                }
+            }
+
+            if (trips.length > 0) {
+                let kickers = [...pairs, ...highCards].sort((a,b) => b - a).slice(0, 2);
+                return { score: 400, label: "Trips", tiebreakers: [trips[0], ...kickers] };
+            }
+
+            if (pairs.length >= 2) {
+                let kickers = [...trips, ...pairs.slice(2), ...highCards].sort((a,b) => b - a);
+                return { score: 300, label: "2 Pair", tiebreakers: [pairs[0], pairs[1], kickers[0]] };
+            }
+
+            if (pairs.length === 1) {
+                let kickers = [...trips, ...highCards].sort((a,b) => b - a).slice(0, 3);
+                return { score: 200, label: "Pair", tiebreakers: [pairs[0], ...kickers] };
+            }
+
+            return { score: 100, label: `High Card ${VALUES[indices[0]]}`, tiebreakers: indices.slice(0, 5) };
         }
 
         function createDeck() {
@@ -730,6 +759,14 @@
         function renderCard(card, isHidden = false) {
             if (isHidden) return `<div class="card hidden"></div>`;
             return `<div class="card ${card.color}"><div>${card.val}</div><div style="font-size:16px; font-weight:normal;">${card.suit}</div></div>`;
+        }
+
+        function getMinimumLegalRaiseTotal(playerCurrent, playerWallet) {
+            let minTotal = state.currentBet + state.lastRaiseIncrement;
+            if (state.currentBet === 0) {
+                minTotal = 20;
+            }
+            return minTotal;
         }
 
         function updateUI() {
@@ -761,14 +798,22 @@
             
             const mainActionBtn = document.getElementById('btn-main-action');
             mainActionBtn.disabled = !state.isPlayerTurn;
+            
             if (state.pendingBetSelection > 0) {
                 const labelType = state.currentBet > 0 ? "Raise" : "Bet";
                 mainActionBtn.innerText = `Confirm ${labelType} ($${state.pendingBetSelection})`;
-                mainActionBtn.className = "side-action state-confirm";
                 
-                const maxAffordable = Math.min(state.playerChips, state.oppChips);
-                const legalMin = state.currentBet > 0 ? (state.currentBet + 10) : 10;
-                mainActionBtn.disabled = (state.pendingBetSelection < legalMin && state.pendingBetSelection < maxAffordable + state.playerCurrentBet);
+                const minLegal = getMinimumLegalRaiseTotal(state.playerCurrentBet, state.playerChips);
+                const maxAffordable = state.playerCurrentBet + state.playerChips;
+                
+                if (state.pendingBetSelection >= minLegal || state.pendingBetSelection === maxAffordable) {
+                    mainActionBtn.className = "side-action state-confirm";
+                    mainActionBtn.disabled = false;
+                } else {
+                    mainActionBtn.className = "side-action";
+                    mainActionBtn.innerText = `Min ${labelType} $${Math.min(minLegal, maxAffordable)}`;
+                    mainActionBtn.disabled = true;
+                }
             } else {
                 if (activeCall > 0) {
                     mainActionBtn.innerText = `Call $${activeCall}`;
@@ -779,18 +824,15 @@
                 }
             }
             
-            const maxAffordable = Math.min(state.playerChips, state.oppChips);
-            document.getElementById('btn-qb10').disabled = !state.isPlayerTurn || maxAffordable < 10;
-            document.getElementById('btn-qb20').disabled = !state.isPlayerTurn || maxAffordable < 20;
-            document.getElementById('btn-qb40').disabled = !state.isPlayerTurn || maxAffordable < 40;
-            document.getElementById('btn-qb60').disabled = !state.isPlayerTurn || maxAffordable < 60;
-            document.getElementById('btn-allin').disabled = !state.isPlayerTurn || maxAffordable <= 0;
+            const uiChipsLocked = !state.isPlayerTurn || state.playerChips <= 0;
+            document.getElementById('btn-qb10').disabled = uiChipsLocked;
+            document.getElementById('btn-qb20').disabled = uiChipsLocked;
+            document.getElementById('btn-qb40').disabled = uiChipsLocked;
+            document.getElementById('btn-qb60').disabled = uiChipsLocked;
+            document.getElementById('btn-allin').disabled = uiChipsLocked;
+            
             const cancelBtn = document.getElementById('btn-cancel-bet');
-            if (state.pendingBetSelection > 0) {
-                cancelBtn.style.display = "block";
-            } else {
-                cancelBtn.style.display = "none";
-            }
+            cancelBtn.style.display = state.pendingBetSelection > 0 ? "block" : "none";
 
             if (state.round === 4) {
                 document.getElementById('btn-deal').disabled = false;
@@ -820,29 +862,50 @@
             document.getElementById('payout-status').innerText = "";
             document.getElementById('payout-status').className = "payout-notice";
             playSound('card');
+            
             state.deck = createDeck();
             state.playerHand = [state.deck.pop(), state.deck.pop()];
             state.oppHand = [state.deck.pop(), state.deck.pop()];
             state.community = [];
             state.round = 0;
-            const blindAmount = Math.min(20, state.playerChips, state.oppChips);
-            state.pot = blindAmount * 2; 
-            state.playerChips -= blindAmount;
-            state.oppChips -= blindAmount;
+            state.lastRaiseIncrement = 20;
+
+            state.dealer = state.dealer === 0 ? 1 : 0; 
             
-            state.playerCurrentBet = blindAmount;
-            state.oppCurrentBet = blindAmount;
-            state.currentBet = blindAmount;
+            let sbCost = 10;
+            let bbCost = 20;
+
+            if (state.dealer === 0) {
+                sbCost = Math.min(10, state.playerChips);
+                bbCost = Math.min(20, state.oppChips);
+                if (sbCost > bbCost) sbCost = bbCost; 
+
+                state.playerChips -= sbCost;
+                state.oppChips -= bbCost;
+                state.playerCurrentBet = sbCost;
+                state.oppCurrentBet = bbCost;
+            } else {
+                sbCost = Math.min(10, state.oppChips);
+                bbCost = Math.min(20, state.playerChips);
+                if (sbCost > bbCost) sbCost = bbCost;
+
+                state.oppChips -= sbCost;
+                state.playerChips -= bbCost;
+                state.oppCurrentBet = sbCost;
+                state.playerCurrentBet = bbCost;
+            }
+
+            state.pot = sbCost + bbCost;
+            state.currentBet = Math.max(state.playerCurrentBet, state.oppCurrentBet);
             state.pendingBetSelection = 0;
             
-            const pStatus = document.getElementById('player-status');
-            const oStatus = document.getElementById('opp-status');
-            pStatus.innerText = "";
-            pStatus.className = "status-text";
-            oStatus.innerText = ""; oStatus.className = "status-text";
+            document.getElementById('player-status').innerText = `SB: $${state.playerCurrentBet}`;
+            document.getElementById('player-status').className = "status-text";
+            document.getElementById('opp-status').innerText = `BB: $${state.oppCurrentBet}`; 
+            document.getElementById('opp-status').className = "status-text";
             document.getElementById('game-status').innerText = "Pre-Flop";
-            state.dealer = state.dealer === 0 ? 1 : 0;
-            state.isPlayerTurn = state.dealer === 0;
+            
+            state.isPlayerTurn = (state.dealer === 0);
 
             updateUI();
             if (!state.isPlayerTurn) setTimeout(opponentTurn, 1000);
@@ -852,17 +915,19 @@
             if (!state.isPlayerTurn) return;
             playSound('chip');
 
-            const maxAffordable = Math.min(state.playerChips, state.oppChips);
-            const absoluteCap = maxAffordable + state.playerCurrentBet;
+            const maxAffordableTotal = state.playerCurrentBet + state.playerChips;
+
             if (value === 'allin') {
-                state.pendingBetSelection = absoluteCap;
+                state.pendingBetSelection = maxAffordableTotal;
             } else {
                 if (state.pendingBetSelection === 0) {
                     state.pendingBetSelection = Math.max(state.currentBet, state.playerCurrentBet);
                 }
-                state.pendingBetSelection += value;
-                if (state.pendingBetSelection > absoluteCap) {
-                    state.pendingBetSelection = absoluteCap;
+                
+                if (state.pendingBetSelection + value <= maxAffordableTotal) {
+                    state.pendingBetSelection += value;
+                } else {
+                    state.pendingBetSelection = maxAffordableTotal;
                 }
             }
             updateUI();
@@ -876,18 +941,30 @@
 
         function handleConfirmBet() {
             if (!state.isPlayerTurn || state.pendingBetSelection === 0) return;
+            
+            const minLegal = getMinimumLegalRaiseTotal(state.playerCurrentBet, state.playerChips);
+            const maxAffordable = state.playerCurrentBet + state.playerChips;
+            
+            if (state.pendingBetSelection < minLegal && state.pendingBetSelection !== maxAffordable) {
+                return; 
+            }
+
             playSound('alert-bet');
             const modeLabel = state.currentBet > 0 ? 'Raise' : 'Bet';
             const addedToPot = state.pendingBetSelection - state.playerCurrentBet;
             
+            const newRaiseIncrement = state.pendingBetSelection - state.currentBet;
+            if (newRaiseIncrement > 0) {
+                state.lastRaiseIncrement = newRaiseIncrement;
+            }
+
             state.playerChips -= addedToPot;
             state.pot += addedToPot;
             state.playerCurrentBet = state.pendingBetSelection;
             state.currentBet = state.pendingBetSelection;
 
-            const pStatus = document.getElementById('player-status');
-            pStatus.innerText = `${modeLabel} $${state.playerCurrentBet}`;
-            pStatus.className = "status-text alert-action"; 
+            document.getElementById('player-status').innerText = `${modeLabel} to $${state.playerCurrentBet}`;
+            document.getElementById('player-status').className = "status-text alert-action"; 
             
             state.pendingBetSelection = 0;
             state.isPlayerTurn = false;
@@ -898,23 +975,30 @@
         function handleCall() {
             playSound('chip');
             state.pendingBetSelection = 0;
-            const callAmount = state.currentBet - state.playerCurrentBet;
+            let callAmount = state.currentBet - state.playerCurrentBet;
+            
+            if (callAmount > state.playerChips) {
+                callAmount = state.playerChips;
+            }
+
             state.playerChips -= callAmount;
             state.pot += callAmount;
-            state.playerCurrentBet = state.currentBet;
-            const pStatus = document.getElementById('player-status');
-            pStatus.innerText = "Call";
-            pStatus.className = "status-text";
+            state.playerCurrentBet += callAmount;
+
+            document.getElementById('player-status').innerText = "Call";
+            document.getElementById('player-status').className = "status-text";
             advanceGameState();
         }
 
         function handleCheck() {
             playSound('chip');
             state.pendingBetSelection = 0;
-            const pStatus = document.getElementById('player-status');
-            pStatus.innerText = "Check";
-            pStatus.className = "status-text";
-            if (state.dealer === 1 && state.isPlayerTurn) {
+            document.getElementById('player-status').innerText = "Check";
+            document.getElementById('player-status').className = "status-text";
+            
+            const isLastToAct = (state.round === 0) ? (state.playerCurrentBet === 20 && state.dealer === 1) : (state.dealer === 0);
+
+            if (isLastToAct) {
                 advanceGameState();
             } else {
                 state.isPlayerTurn = false;
@@ -940,129 +1024,161 @@
             const toCall = state.currentBet - state.oppCurrentBet;
             const oStatus = document.getElementById('opp-status');
 
-            if (state.playerChips === 0 || state.oppChips === 0) {
+            if (state.round === 0) {
+                const v0 = VALUES.indexOf(state.oppHand[0].val);
+                const v1 = VALUES.indexOf(state.oppHand[1].val);
+                const highVal = Math.max(v0, v1);
+                const lowVal = Math.min(v0, v1);
+                const isPair = (v0 === v1);
+                
+                const hasMonster = isPair && highVal >= 5 || (highVal === 12 && lowVal >= 9);
+                const hasGoodCards = isPair || highVal >= 9 || (highVal >= 8 && lowVal >= 7);
+
                 if (toCall > 0) {
-                    executeOpponentCall(toCall);
+                    if (state.oppChips <= 200) {
+                        if (hasMonster || hasGoodCards) {
+                            executeOpponentBet(state.oppCurrentBet + state.oppChips, "All-In");
+                        } else {
+                            executeOpponentFold();
+                        }
+                        return;
+                    }
+
+                    if (state.oppChips > 200 && state.oppChips <= 500) {
+                        if (hasMonster) {
+                            if (Math.random() > 0.4) executeOpponentBet(state.currentBet + 30, "Raise");
+                            else executeOpponentCall(toCall);
+                        } else if (hasGoodCards && highVal >= 10) { 
+                            executeOpponentCall(toCall);
+                        } else {
+                            executeOpponentFold();
+                        }
+                        return;
+                    }
+
+                    if (hasMonster) {
+                        if (Math.random() > 0.3) executeOpponentBet(state.currentBet + 40, "Raise");
+                        else executeOpponentCall(toCall);
+                    } else if (hasGoodCards) {
+                        executeOpponentCall(toCall);
+                    } else {
+                        if (toCall <= 10 && highVal >= 7 && Math.random() > 0.4) {
+                            executeOpponentCall(toCall);
+                        } else {
+                            executeOpponentFold();
+                        }
+                    }
                 } else {
-                    playSound('chip');
-                    oStatus.innerText = "Check";
-                    oStatus.className = "status-text";
-                    setTimeout(advanceGameState, 1000);
+                    if ((hasMonster || hasGoodCards) && Math.random() > 0.5) {
+                        executeOpponentBet(20, "Bet");
+                    } else {
+                        executeOpponentCheck();
+                    }
                 }
                 return;
             }
+
+            // --- THE AUTO-CALL TRAP FIX ---
+            // Instead of instantly matching any bet if a player is at $0 chips, 
+            // the bot now falls through to read its cards first to handle all-ins correctly!
 
             const isBluffHand = (state.handsDealtCount === state.nextBluffHand);
             const oppCombo = evaluateHandScore([...state.oppHand, ...state.community]);
             
             if (toCall > 0) {
-                // GAME THEORY / MATHEMATICAL BET DEFENSE ARCHITECTURE
-                const isPlayerAllIn = (state.playerChips === 0 || toCall >= state.oppChips);
+                const isPlayerAllIn = (state.playerChips === 0);
 
-                if (isPlayerAllIn && oppCombo.score < 600) { 
-                    // Calculate Pot Odds & MDF (Minimum Defense Frequency)
+                if (isPlayerAllIn && oppCombo.score < 450) { 
                     const mdf = state.pot / (state.pot + toCall);
-                    
-                    // Modify MDF based on Bot's state. If stack is low, increase willingness to call (anti-bullying override)
                     let adjustedMdf = mdf;
-                    if (state.oppChips <= 250) {
-                        adjustedMdf += 0.25; 
-                    }
+                    if (state.oppChips <= 250) adjustedMdf += 0.25; 
 
-                    // If the mathematical MDF requirement is restrictive and a random check fails, the bot folds vulnerable holdings
                     if (Math.random() > adjustedMdf) {
-                        playSound('card');
-                        const payoutNotice = document.getElementById('payout-status');
-                        payoutNotice.innerText = `You +$${state.pot}`;
-                        payoutNotice.className = "payout-notice win";
-
-                        state.playerChips += state.pot;
-                        // PRIVACY RETAINED: The reason message has been updated from "Bot folds to risk ratio!" to a clean, generic poker update.
-                        document.getElementById('game-status').innerText = "Opponent Folds!";
-                        oStatus.innerText = "Fold";
-                        oStatus.className = "status-text";
-                        endHand();
+                        executeOpponentFold();
                         return;
                     }
                 }
 
                 if (isBluffHand) {
-                    if (Math.random() > 0.3 && state.oppChips > toCall * 2) {
-                        const rawRaise = state.currentBet + Math.floor(state.pot * 0.6);
-                        executeOpponentBet(rawRaise, "Raise");
+                    if (Math.random() > 0.3 && state.oppChips > toCall) {
+                        executeOpponentBet(state.currentBet + Math.max(state.lastRaiseIncrement, Math.floor(state.pot * 0.5)), "Raise");
+                    } else {
+                        executeOpponentCall(toCall);
+                    }
+                } else if (oppCombo.score >= 500) { 
+                    if (Math.random() > 0.3 && state.oppChips > toCall) {
+                        executeOpponentBet(state.currentBet + Math.max(state.lastRaiseIncrement, Math.floor(state.pot * 0.6)), "Raise");
                     } else {
                         executeOpponentCall(toCall);
                     }
                 } else if (oppCombo.score >= 300) { 
-                    if (Math.random() > 0.4 && state.oppChips > toCall * 2) {
-                        const rawRaise = state.currentBet + Math.floor(state.pot * 0.5);
-                        const raiseAmt = Math.max(state.currentBet + 10, Math.round(rawRaise / 10) * 10);
-                        executeOpponentBet(raiseAmt, "Raise");
+                    if (Math.random() > 0.5 && state.oppChips > toCall) {
+                        executeOpponentBet(state.currentBet + state.lastRaiseIncrement, "Raise");
                     } else {
                         executeOpponentCall(toCall);
                     }
-                } else if (oppCombo.score >= 200) {
-                    if (Math.random() > 0.8 && state.oppChips > toCall * 2) {
-                        const raiseAmt = state.currentBet + 40;
-                        executeOpponentBet(raiseAmt, "Raise");
-                    } else {
-                        executeOpponentCall(toCall);
-                    }
-                } else if (oppCombo.score > 112 || Math.random() > 0.5) {
-                    executeOpponentCall(toCall);
-                } else {
-                    playSound('card');
-                    const payoutNotice = document.getElementById('payout-status');
-                    payoutNotice.innerText = `You +$${state.pot}`;
-                    payoutNotice.className = "payout-notice win";
+                } else if (oppCombo.score >= 200 && oppCombo.score < 300) {
+                    const pairValueIndex = oppCombo.tiebreakers[0]; 
+                    const boardIndices = state.community.map(c => VALUES.indexOf(c.val));
+                    const highestBoardValueIndex = Math.max(...boardIndices);
+                    
+                    const isTopPair = (pairValueIndex === highestBoardValueIndex);
+                    const isAceOrKingPair = (pairValueIndex === 12 || pairValueIndex === 11);
+                    
+                    const isPremiumPair = isTopPair || isAceOrKingPair;
+                    const isHeavyBet = (toCall >= state.pot * 0.5);
+                    const isCautionStack = (state.oppChips <= 500);
 
-                    state.playerChips += state.pot;
-                    document.getElementById('game-status').innerText = "Opponent Folds!";
-                    oStatus.innerText = "Fold";
-                    oStatus.className = "status-text";
-                    endHand();
+                    if (isPremiumPair) {
+                        if (isHeavyBet || isCautionStack) {
+                            if (Math.random() > 0.6) {
+                                executeOpponentCall(toCall);
+                            } else {
+                                executeOpponentFold();
+                            }
+                        } else {
+                            if (Math.random() > 0.1) {
+                                executeOpponentCall(toCall);
+                            } else {
+                                executeOpponentFold();
+                            }
+                        }
+                    } else {
+                        if (Math.random() > 0.75) {
+                            executeOpponentCall(toCall);
+                        } else {
+                            executeOpponentFold();
+                        }
+                    }
+                } else {
+                    executeOpponentFold();
                 }
             } else {
                 if (isBluffHand) {
                     if (Math.random() > 0.4) {
-                        const rawBet = Math.max(40, Math.floor(state.pot * 0.8));
-                        executeOpponentBet(rawBet, "Bet");
+                        executeOpponentBet(Math.max(20, Math.floor(state.pot * 0.6)), "Bet");
                     } else {
-                        playSound('chip');
-                        oStatus.innerText = "Check";
-                        oStatus.className = "status-text";
-                        if (state.dealer === 0) setTimeout(advanceGameState, 1000);
-                        else { state.isPlayerTurn = true; updateUI(); }
+                        executeOpponentCheck();
                     }
                 } else if (oppCombo.score >= 300) {
-                    const rawBet = Math.max(40, Math.floor(state.pot * 0.75));
-                    const betAmt = Math.round(rawBet / 10) * 10;
-                    executeOpponentBet(betAmt, "Bet");
-                } else if (oppCombo.score >= 200 && Math.random() > 0.3) {
-                    const rawBet = Math.max(20, Math.floor(state.pot * 0.5));
-                    const betAmt = Math.round(rawBet / 10) * 10;
-                    executeOpponentBet(betAmt, "Bet");
-                } else if (Math.random() > 0.85) {
-                    executeOpponentBet(30, "Bet");
+                    executeOpponentBet(Math.max(20, Math.floor(state.pot * 0.5)), "Bet");
+                } else if (oppCombo.score >= 200 && Math.random() > 0.5) {
+                    executeOpponentBet(20, "Bet");
                 } else {
-                    playSound('chip');
-                    oStatus.innerText = "Check";
-                    oStatus.className = "status-text";
-                    if (state.dealer === 0) {
-                        setTimeout(advanceGameState, 1000);
-                    } else {
-                        state.isPlayerTurn = true;
-                        updateUI();
-                    }
+                    executeOpponentCheck();
                 }
             }
         }
 
         function executeOpponentCall(toCall) {
             playSound('chip');
-            state.oppChips -= toCall;
-            state.pot += toCall;
-            state.oppCurrentBet = state.currentBet;
+            let realCall = toCall;
+            if (realCall > state.oppChips) realCall = state.oppChips;
+
+            state.oppChips -= realCall;
+            state.pot += realCall;
+            state.oppCurrentBet += realCall;
+            
             const oStatus = document.getElementById('opp-status');
             oStatus.innerText = "Call";
             oStatus.className = "status-text";
@@ -1071,37 +1187,90 @@
 
         function executeOpponentBet(amount, typeLabel) {
             playSound('alert-bet');
-            let targetAmount = Math.round(amount / 10) * 10;
-            const absoluteCap = Math.min(state.oppChips, state.playerChips) + state.oppCurrentBet;
-            if (targetAmount > absoluteCap) {
-                targetAmount = absoluteCap;
-            }
+            
+            let minLegal = state.currentBet + state.lastRaiseIncrement;
+            if (state.currentBet === 0) minLegal = 20;
+
+            let targetAmount = Math.max(minLegal, amount);
+            targetAmount = Math.round(targetAmount / 10) * 10;
+            
+            const absoluteCap = state.oppCurrentBet + state.oppChips;
+            if (targetAmount > absoluteCap) targetAmount = absoluteCap;
             
             const addedToPot = targetAmount - state.oppCurrentBet;
+            
+            const newRaiseIncrement = targetAmount - state.currentBet;
+            if (newRaiseIncrement > 0) {
+                state.lastRaiseIncrement = newRaiseIncrement;
+            }
+
             state.oppChips -= addedToPot;
             state.pot += addedToPot;
             state.oppCurrentBet = targetAmount;
             state.currentBet = targetAmount;
             
             const oStatus = document.getElementById('opp-status');
-            oStatus.innerText = `${typeLabel} $${targetAmount}`;
+            oStatus.innerText = `${typeLabel} to $${targetAmount}`;
             oStatus.className = "status-text alert-action"; 
             
             state.isPlayerTurn = true;
             updateUI();
         }
 
+        function executeOpponentCheck() {
+            playSound('chip');
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = "Check"; 
+            oStatus.className = "status-text";
+            
+            const isLastToAct = (state.round === 0) ? (state.oppCurrentBet === 20 && state.dealer === 0) : (state.dealer === 1);
+            
+            if (isLastToAct) {
+                setTimeout(advanceGameState, 1000);
+            } else {
+                state.isPlayerTurn = true;
+                updateUI();
+            }
+        }
+
+        function executeOpponentFold() {
+            playSound('card');
+            const payoutNotice = document.getElementById('payout-status');
+            payoutNotice.innerText = `You +$${state.pot}`;
+            payoutNotice.className = "payout-notice win";
+
+            state.playerChips += state.pot;
+            document.getElementById('game-status').innerText = "Opponent Folds!";
+            document.getElementById('opp-status').innerText = "Fold";
+            document.getElementById('opp-status').className = "status-text";
+            endHand();
+        }
+
         function advanceGameState() {
+            if (state.playerCurrentBet !== state.oppCurrentBet) {
+                const standardCap = Math.min(state.playerCurrentBet, state.oppCurrentBet);
+                const combinedExcess = (state.playerCurrentBet - standardCap) + (state.oppCurrentBet - standardCap);
+                
+                if (state.playerCurrentBet > standardCap) {
+                    state.playerChips += (state.playerCurrentBet - standardCap);
+                } else {
+                    state.oppChips += (state.oppCurrentBet - standardCap);
+                }
+                state.pot -= combinedExcess;
+            }
+
             state.playerCurrentBet = 0;
             state.oppCurrentBet = 0;
             state.currentBet = 0;
             state.pendingBetSelection = 0;
+            state.lastRaiseIncrement = 20; 
             
             state.round++;
             playSound('card');
 
             document.getElementById('player-status').className = "status-text";
             document.getElementById('opp-status').className = "status-text";
+            
             if (state.round === 1) {
                 state.community.push(state.deck.pop(), state.deck.pop(), state.deck.pop());
                 document.getElementById('game-status').innerText = "Flop";
@@ -1116,12 +1285,13 @@
                 return;
             }
 
+            // --- ALL-IN FAST-FORWARD FIX ---
             if (state.playerChips === 0 || state.oppChips === 0) {
                 state.isPlayerTurn = false;
                 updateUI();
-                setTimeout(opponentTurn, 1000);
+                setTimeout(advanceGameState, 1000); 
             } else {
-                state.isPlayerTurn = state.dealer === 0;
+                state.isPlayerTurn = (state.dealer === 1);
                 updateUI();
                 if (!state.isPlayerTurn) setTimeout(opponentTurn, 1000);
             }
@@ -1135,13 +1305,26 @@
             
             let msg = "";
             const payoutNotice = document.getElementById('payout-status');
-            if (pScore.score > oScore.score) {
+            
+            let structuralWinner = 0; 
+            if (pScore.score > oScore.score) structuralWinner = 1;
+            else if (oScore.score > pScore.score) structuralWinner = 2;
+            else {
+                for (let i = 0; i < Math.max(pScore.tiebreakers.length, oScore.tiebreakers.length); i++) {
+                    let pKicker = pScore.tiebreakers[i] || 0;
+                    let oKicker = oScore.tiebreakers[i] || 0;
+                    if (pKicker > oKicker) { structuralWinner = 1; break; }
+                    if (oKicker > pKicker) { structuralWinner = 2; break; }
+                }
+            }
+
+            if (structuralWinner === 1) {
                 payoutNotice.innerText = `You +$${state.pot}`;
                 payoutNotice.className = "payout-notice win";
                 state.playerChips += state.pot;
                 msg = `You Win! (${pScore.label})`;
                 playSound('win');
-            } else if (oScore.score > pScore.score) {
+            } else if (structuralWinner === 2) {
                 payoutNotice.innerText = `Opponent +$${state.pot}`;
                 payoutNotice.className = "payout-notice lose";
                 state.oppChips += state.pot;
@@ -1152,13 +1335,10 @@
                 payoutNotice.className = "payout-notice split";
                 state.playerChips += splitAmt;
                 state.oppChips += splitAmt;
-                msg = "Split!";
+                msg = `Split! (${pScore.label})`;
             }
 
-            if (wasBluffHand) {
-                pickNextBluffTarget();
-            }
-
+            if (wasBluffHand) pickNextBluffTarget();
             document.getElementById('game-status').innerText = msg;
             endHand();
         }
