@@ -1,6 +1,1375 @@
 <!DOCTYPE html>
 <html lang="en">
+<head><!DOCTYPE html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Kyle's Hold'em</title>
+    
+    <!-- Connection to your custom AI Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="Texas-holdem.png">
+
+    <style>
+        :root {
+            --bg-color: #090d10;
+            --card-bg: #ffffff;
+            --card-text-dark: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-light: #0c4a6e;
+            --alert-accent: #f59e0b; 
+            --btn-bg: #1e293b;
+            --btn-fold-bg: #3f1616;
+            --btn-fold-text: #fca5a5;
+            --btn-check-bg: #2563eb;
+            --btn-call-bg: #d97706; 
+            --btn-confirm-bg: #16a34a; 
+            --btn-cancel-bg: #dc2626;
+            --shadow: rgba(0, 0, 0, 0.6);
+            --win-green: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            height: 100dvh; 
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: calc(env(safe-area-inset-top) + 8px) 16px 0 16px;
+            position: relative;
+        }
+
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .header-chips {
+            flex: 1;
+        }
+        #my-chips {
+            text-align: right;
+        }
+
+        .pot-display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 8px;
+        }
+
+        .pot-display {
+            background: var(--accent-light);
+            color: var(--accent);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 900;
+            border: 1px solid var(--accent);
+            box-shadow: 0 2px 8px rgba(56, 189, 248, 0.2);
+            white-space: nowrap;
+        }
+
+        .payout-notice {
+            font-size: 12px;
+            font-weight: 800;
+            height: 14px;
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .payout-notice.win { color: var(--win-green); }
+        .payout-notice.lose { color: #ef4444; }
+        .payout-notice.split { color: var(--alert-accent); }
+
+        .play-area {
+            display: flex;
+            flex-direction: column;
+            gap: 10px; 
+            width: 100%;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .player-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            width: 100%;
+            position: relative;
+        }
+
+        .player-action-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            gap: 10px;
+            position: relative;
+        }
+
+        .action-btn-wrapper {
+            width: 110px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .action-btn-wrapper.left-side { justify-content: flex-start; }
+        .action-btn-wrapper.right-side { justify-content: flex-end; }
+
+        .dealer-puck {
+            width: 18px;
+            height: 18px;
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            border: 1px solid #94a3b8;
+            visibility: hidden;
+        }
+
+        #opp-dealer-container {
+            align-self: flex-start;
+            height: 18px;
+            margin-top: -2px;
+            margin-bottom: 2px;
+        }
+
+        #player-dealer-container {
+            height: 18px;
+            margin-bottom: 4px;
+            padding-left: 4px;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: var(--accent);
+            height: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-text.alert-action {
+            color: var(--alert-accent);
+            animation: popScale 0.2s ease-out;
+        }
+
+        @keyframes popScale {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .card-row {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            min-height: 90px;
+            flex: 1;
+        }
+
+        .card {
+            width: 62px;
+            height: 90px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 24px;
+            font-weight: 800;
+            box-shadow: 0 6px 14px var(--shadow);
+        }
+
+        .card.hidden {
+            background: linear-gradient(135deg, #334155, #1e293b);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .card.red { color: #dc2626; }
+        .card.black { color: var(--card-text-dark); }
+
+        .controls-area {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 6px;
+            width: 100%;
+        }
+
+        button {
+            flex: 1;
+            border: none;
+            background: var(--btn-bg);
+            color: var(--text-main);
+            padding: 14px 0;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            box-shadow: 0 4px 8px var(--shadow);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        button:active:not(:disabled) {
+            background: #334155;
+        }
+
+        button:disabled {
+            opacity: 0.12;
+            box-shadow: none;
+        }
+
+        button.side-action {
+            width: 100%;
+            padding: 24px 0;
+            border-radius: 12px;
+        }
+        
+        button#btn-fold {
+            background: var(--btn-fold-bg);
+            color: var(--btn-fold-text);
+            border: 1px solid rgba(252, 165, 165, 0.15);
+        }
+        button#btn-fold:active:not(:disabled) {
+            background: #5c1d1d;
+        }
+
+        button#btn-main-action {
+            font-size: 14px;
+            color: #ffffff;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        button#btn-main-action.state-check {
+            background: var(--btn-check-bg);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        button#btn-main-action.state-check:active:not(:disabled) {
+            background: #1d4ed8;
+        }
+        button#btn-main-action.state-call {
+            background: var(--btn-call-bg);
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        }
+        button#btn-main-action.state-call:active:not(:disabled) {
+            background: #b45309;
+        }
+        button#btn-main-action.state-confirm {
+            background: var(--btn-confirm-bg);
+            box-shadow: 0 4px 14px rgba(22, 163, 74, 0.4);
+        }
+        button#btn-main-action.state-confirm:active:not(:disabled) {
+            background: #15803d;
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: #000000;
+        }
+
+        button.primary:active:not(:disabled) {
+            background: #0ea5e9;
+        }
+
+        button#btn-cancel-bet {
+            flex: none;
+            width: 95px;
+            background: var(--btn-cancel-bg);
+            color: #ffffff;
+            display: none;
+        }
+        button#btn-cancel-bet:active:not(:disabled) {
+            background: #b91c1c;
+        }
+
+        button.quick-bet {
+            padding: 12px 0;
+            font-size: 13px;
+            background: #1e293b;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        button.quick-bet:active:not(:disabled) {
+            background: #0c4a6e;
+        }
+
+        .utility-btn-container {
+            display: flex;
+            justify-content: flex-start;
+            width: 100%;
+            margin-top: 4px;
+            padding-left: 2px;
+        }
+
+        .compact-info-btn {
+            background: transparent;
+            color: var(--accent);
+            border: none;
+            box-shadow: none;
+            padding: 4px 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: underline;
+            cursor: pointer;
+            width: auto;
+            flex: none;
+        }
+        .compact-info-btn:active {
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        .game-over-overlay, .modal-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 13, 16, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            z-index: 100;
+            padding: 32px;
+            text-align: center;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .game-over-overlay.show, .modal-overlay.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .rankings-content {
+            background: #1e293b;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 350px;
+            max-height: 80dvh;
+            overflow-y: auto;
+            padding: 18px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            text-align: left;
+        }
+
+        .rankings-header {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--accent);
+            margin-bottom: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }
+
+        .rankings-subheader {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--alert-accent);
+            margin-top: 16px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px dashed rgba(255,255,255,0.1);
+            padding-bottom: 4px;
+        }
+
+        .rank-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .rank-item:last-child { border-bottom: none; }
+
+        .rank-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .rank-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .game-over-title {
+            font-size: 32px;
+            font-weight: 900;
+            color: var(--alert-accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .game-over-desc {
+            font-size: 16px;
+            color: var(--text-main);
+            max-width: 280px;
+            line-height: 1.5;
+        }
+
+        .restart-btn {
+            background: var(--accent);
+            color: #000000;
+            font-size: 16px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 800;
+            box-shadow: 0 8px 24px rgba(56, 189, 248, 0.4);
+            max-width: 240px;
+            width: 100%;
+        }
+
+        .secondary-btn {
+            background: #334155;
+            color: var(--text-main);
+            font-size: 14px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            max-width: 240px;
+            width: 100%;
+        }
+        .secondary-btn:active {
+            background: #475569;
+        }
+
+        #btn-return-results {
+            position: absolute;
+            top: calc(env(safe-area-inset-top) + 8px);
+            left: 16px;
+            z-index: 90;
+            width: auto;
+            padding: 8px 16px;
+            font-size: 12px;
+            background: var(--alert-accent);
+            color: #000000;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <button id="btn-return-results" onclick="showGameOverOverlayAgain()">← Return to Results</button>
+
+    <div class="game-header">
+        <div id="opp-chips" class="header-chips">Opponent: $1000</div>
+        <div class="pot-display-container">
+            <div class="pot-display" id="pot-size">Pot: $0</div>
+            <div class="payout-notice" id="payout-status"></div>
+        </div>
+        <div id="my-chips" class="header-chips">You: $1000</div>
+    </div>
+
+    <div class="play-area">
+        <div class="player-zone">
+            <div id="opp-dealer-container"><div id="opp-puck" class="dealer-puck">D</div></div>
+            <div class="card-row" id="opp-cards" style="flex:none; width:100%;"></div>
+            <span class="status-text" id="opp-status"></span>
+        </div>
+
+        <div class="player-zone">
+            <div class="card-row" id="community-cards" style="flex:none; width:100%;"></div>
+            <span class="status-text" id="game-status">Tap Deal</span>
+        </div>
+
+        <div class="player-zone">
+            <span class="status-text" id="player-status"></span>
+            
+            <div class="player-action-row">
+                <div class="action-btn-wrapper left-side">
+                    <div id="player-dealer-container"><div id="player-puck" class="dealer-puck">D</div></div>
+                    <button id="btn-fold" class="side-action" onclick="handleFold()">Fold</button>
+                </div>
+                <div class="card-row" id="player-cards"></div>
+                <div class="action-btn-wrapper right-side">
+                    <div style="height: 18px; margin-bottom: 4px;"></div>
+                    <button id="btn-main-action" class="side-action state-check" onclick="handleMainAction()">Check</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="controls-area">
+        <div class="btn-row">
+            <button id="btn-qb10" class="quick-bet" onclick="addBet(10)">+$10</button>
+            <button id="btn-qb20" class="quick-bet" onclick="addBet(20)">+$20</button>
+            <button id="btn-qb40" class="quick-bet" onclick="addBet(40)">+$40</button>
+            <button id="btn-qb60" class="quick-bet" onclick="addBet(60)">+$60</button>
+        </div>
+        
+        <div class="btn-row">
+            <button id="btn-cancel-bet" onclick="handleCancelBet()">✕ Reset</button>
+            <button id="btn-allin" class="primary" onclick="addBet('allin')">All-In</button>
+            <button id="btn-deal" class="primary" onclick="handleDeal()">Deal</button>
+        </div>
+
+        <div class="utility-btn-container">
+            <button class="compact-info-btn" onclick="toggleRankings(true)">Hand Order & FAQ</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="rankings-modal" onclick="toggleRankings(false)">
+        <div class="rankings-content" onclick="event.stopPropagation()">
+            <div class="rankings-header">Game Rules & FAQ</div>
+            
+            <div class="rankings-subheader">Blinds & Minimum Raises</div>
+            <div class="rank-item">
+                <div class="rank-title">Forced Blinds ($10 / $20)</div>
+                <div class="rank-desc">Before cards drop, the Dealer automatically posts the $10 Small Blind, and the opponent posts the $20 Big Blind. Money goes in *before* seeing cards. You can fold post-deal, but your blind is forfeit.</div>
+            </div>
+            <div class="rank-item">
+                <div class="rank-title">The Minimum Raise Rule</div>
+                <div class="rank-desc">A raise must match the current high bet PLUS increase it by at least the amount of the previous bet/raise increment. Pre-flop, since the Big Blind is $20, the first legal minimum raise size is $40 total.</div>
+            </div>
+
+            <div class="rankings-subheader">Hand Rankings</div>
+            <div class="rank-item"><div class="rank-title">1. Royal Flush</div><div class="rank-desc">A, K, Q, J, 10 of the exact same suit.</div></div>
+            <div class="rank-item"><div class="rank-title">2. Straight Flush</div><div class="rank-desc">Five consecutive cards of the same suit.</div></div>
+            <div class="rank-item"><div class="rank-title">3. Four of a Kind</div><div class="rank-desc">Four cards of identical numerical value.</div></div>
+            <div class="rank-item"><div class="rank-title">4. Full House</div><div class="rank-desc">Three of a kind combined with a pair.</div></div>
+            <div class="rank-item"><div class="rank-title">5. Flush</div><div class="rank-desc">Any five cards of the same suit, not in sequence.</div></div>
+            <div class="rank-item"><div class="rank-title">6. Straight</div><div class="rank-desc">Five sequential cards of mixed suits.</div></div>
+            <div class="rank-item"><div class="rank-title">7. Three of a Kind (Trips)</div><div class="rank-desc">Three cards matching the same numerical value.</div></div>
+            <div class="rank-item"><div class="rank-title">8. Two Pair</div><div class="rank-desc">Two distinct numerical pairs.</div></div>
+            <div class="rank-item"><div class="rank-title">9. One Pair</div><div class="rank-desc">Two cards matching the same numerical value.</div></div>
+            <div class="rank-item"><div class="rank-title">10. High Card</div><div class="rank-desc">No hands match; highest rank card wins.</div></div>
+            
+            <div class="rankings-subheader">Tiebreakers & Details</div>
+            <div class="rank-item"><div class="rank-title">Do Suits Matter for Ties?</div><div class="rank-desc">No. All suits are equal. If hands match completely, the pot is split evenly.</div></div>
+            <div class="rank-item"><div class="rank-title">Can an Ace Start a Low Straight?</div><div class="rank-desc">Yes! An Ace can act as the lowest card to create an A-2-3-4-5 straight.</div></div>
+            <div class="rank-item"><div class="rank-title">What is a "Kicker" Tiebreaker?</div><div class="rank-desc">If hand strengths tie (e.g. same pair), the game compares remaining highest unused hole or community cards. High kicker wins.</div></div>
+            
+            <button class="secondary-btn" style="margin-top:14px; width:100%; max-width:none;" onclick="toggleRankings(false)">Close</button>
+        </div>
+    </div>
+
+    <div class="game-over-overlay" id="game-over-screen">
+        <div class="game-over-title" id="go-title">Game Over</div>
+        <div class="game-over-desc" id="go-desc">You ran out of chips!</div>
+        <button class="restart-btn" onclick="resetEntireMatch()">Play Again</button>
+        <button class="secondary-btn" onclick="reviewFinalHand()">Review Final Hand</button>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+
+            if (type === 'chip') { 
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, now);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            } else if (type === 'alert-bet') {
+                const osc1 = audioCtx.createOscillator();
+                const osc2 = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc1.type = 'sine'; osc2.type = 'sine';
+                osc1.frequency.setValueAtTime(587.33, now); 
+                osc2.frequency.setValueAtTime(880.00, now); 
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc1.connect(gain); osc2.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc1.start(now); osc2.start(now);
+                osc1.stop(now + 0.25); osc2.stop(now + 0.25);
+            } else if (type === 'card') { 
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.08);
+                gain.gain.setValueAtTime(0.25, now); 
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now); osc.stop(now + 0.08);
+            } else if (type === 'win') {
+                const melody = [523.25, 659.25, 783.99, 987.77];
+                melody.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    const triggerTime = now + (idx * 0.05);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, triggerTime);
+                    gain.gain.setValueAtTime(0.2, triggerTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, triggerTime + 0.15);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(triggerTime); osc.stop(triggerTime + 0.15);
+                });
+            }
+        }
+
+        const SUITS = ['♠', '♥', '♦', '♣'];
+        const VALUES = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+        let state = {
+            playerChips: 1000, oppChips: 1000, pot: 0,
+            playerHand: [], oppHand: [], community: [], deck: [],
+            currentBet: 0, playerCurrentBet: 0, oppCurrentBet: 0,
+            lastRaiseIncrement: 20, 
+            pendingBetSelection: 0,
+            round: 4, isPlayerTurn: false, dealer: -1,
+            handsDealtCount: 0, nextBluffHand: 0
+        };
+
+        function pickNextBluffTarget() {
+            state.nextBluffHand = state.handsDealtCount + Math.floor(Math.random() * 15) + 1;
+        }
+        pickNextBluffTarget();
+
+        function toggleRankings(show) {
+            playSound('card');
+            const modal = document.getElementById('rankings-modal');
+            if (show) modal.classList.add('show');
+            else modal.classList.remove('show');
+        }
+
+        function evaluateHandScore(cards) {
+            const indices = cards.map(c => VALUES.indexOf(c.val)).sort((a,b) => b - a);
+            let suitCounts = {};
+            cards.forEach(c => suitCounts[c.suit] = (suitCounts[c.suit] || 0) + 1);
+            let flushSuit = Object.keys(suitCounts).find(s => suitCounts[s] >= 5);
+            
+            if (flushSuit) {
+                let flushCards = cards.filter(c => c.suit === flushSuit);
+                let fVals = Array.from(new Set(flushCards.map(c => VALUES.indexOf(c.val)))).sort((a,b) => b - a);
+                
+                if (fVals.includes(12)) fVals.push(-1);
+                for (let i = 0; i <= fVals.length - 5; i++) {
+                    if (fVals[i] - fVals[i+4] === 4) {
+                        let highVal = fVals[i];
+                        if (highVal === 12) return { score: 900, label: "Royal Flush", tiebreakers: [12] };
+                        return { score: 800 + highVal, label: "Straight Flush", tiebreakers: [highVal] };
+                    }
+                }
+                let cleanFVals = fVals.filter(v => v !== -1);
+                return { score: 600, label: "Flush", tiebreakers: cleanFVals.slice(0, 5) };
+            }
+
+            let counts = {};
+            indices.forEach(v => counts[v] = (counts[v] || 0) + 1);
+            
+            let quads = [], trips = [], pairs = [], highCards = [];
+            for (let v in counts) {
+                let val = Number(v);
+                if (counts[v] === 4) quads.push(val);
+                else if (counts[v] === 3) trips.push(val);
+                else if (counts[v] === 2) pairs.push(val);
+                else highCards.push(val);
+            }
+            quads.sort((a,b) => b - a);
+            trips.sort((a,b) => b - a);
+            pairs.sort((a,b) => b - a);
+            highCards.sort((a,b) => b - a);
+
+            if (quads.length > 0) {
+                let kicker = [...trips, ...pairs, ...highCards].sort((a,b) => b - a)[0];
+                return { score: 700, label: "Four of a Kind", tiebreakers: [quads[0], kicker] };
+            }
+
+            if (trips.length > 0 && (pairs.length > 0 || trips.length > 1)) {
+                let tripOver = trips[0];
+                let pairOver = trips.length > 1 ? trips[1] : pairs[0];
+                return { score: 500, label: "Full House", tiebreakers: [tripOver, pairOver] };
+            }
+
+            let uniqueVals = Array.from(new Set(indices)).sort((a, b) => b - a);
+            if (uniqueVals.includes(12)) uniqueVals.push(-1);
+            for (let i = 0; i <= uniqueVals.length - 5; i++) {
+                if (uniqueVals[i] - uniqueVals[i+4] === 4) {
+                    return { score: 450, label: "Straight", tiebreakers: [uniqueVals[i]] };
+                }
+            }
+
+            if (trips.length > 0) {
+                let kickers = [...pairs, ...highCards].sort((a,b) => b - a).slice(0, 2);
+                return { score: 400, label: "Trips", tiebreakers: [trips[0], ...kickers] };
+            }
+
+            if (pairs.length >= 2) {
+                let kickers = [...trips, ...pairs.slice(2), ...highCards].sort((a,b) => b - a);
+                return { score: 300, label: "2 Pair", tiebreakers: [pairs[0], pairs[1], kickers[0]] };
+            }
+
+            if (pairs.length === 1) {
+                let kickers = [...trips, ...highCards].sort((a,b) => b - a).slice(0, 3);
+                return { score: 200, label: "Pair", tiebreakers: [pairs[0], ...kickers] };
+            }
+
+            return { score: 100, label: `High Card ${VALUES[indices[0]]}`, tiebreakers: indices.slice(0, 5) };
+        }
+
+        function createDeck() {
+            let deck = [];
+            for (let suit of SUITS) {
+                for (let val of VALUES) {
+                    deck.push({ val, suit, color: (suit==='♥'||suit==='♦') ? 'red' : 'black' });
+                }
+            }
+            return deck.sort(() => Math.random() - 0.5);
+        }
+
+        function renderCard(card, isHidden = false) {
+            if (isHidden) return `<div class="card hidden"></div>`;
+            return `<div class="card ${card.color}"><div>${card.val}</div><div style="font-size:16px; font-weight:normal;">${card.suit}</div></div>`;
+        }
+
+        function getMinimumLegalRaiseTotal(playerCurrent, playerWallet) {
+            let minTotal = state.currentBet + state.lastRaiseIncrement;
+            if (state.currentBet === 0) {
+                minTotal = 20;
+            }
+            return minTotal;
+        }
+
+        function updateUI() {
+            document.getElementById('my-chips').innerText = `You: $${state.playerChips}`;
+            document.getElementById('opp-chips').innerText = `Opp: $${state.oppChips}`;
+            document.getElementById('pot-size').innerText = `Pot: $${state.pot}`;
+
+            document.getElementById('player-cards').innerHTML = state.playerHand.map(c => renderCard(c)).join('');
+            document.getElementById('opp-cards').innerHTML = state.oppHand.map((c, i) => renderCard(c, state.round < 4)).join('');
+            document.getElementById('community-cards').innerHTML = state.community.map(c => renderCard(c)).join('');
+            
+            const playerPuck = document.getElementById('player-puck');
+            const oppPuck = document.getElementById('opp-puck');
+            
+            if (state.dealer === 0) {
+                playerPuck.style.visibility = 'visible';
+                oppPuck.style.visibility = 'hidden';
+            } else if (state.dealer === 1) {
+                playerPuck.style.visibility = 'hidden';
+                oppPuck.style.visibility = 'visible';
+            } else {
+                playerPuck.style.visibility = 'hidden';
+                oppPuck.style.visibility = 'hidden';
+            }
+
+            const activeCall = state.currentBet - state.playerCurrentBet;
+            document.getElementById('btn-deal').disabled = state.round !== 4 && state.pot > 0;
+            
+            const mainActionBtn = document.getElementById('btn-main-action');
+            const foldBtn = document.getElementById('btn-fold');
+
+            if (state.playerChips === 0 && state.isPlayerTurn) {
+                foldBtn.disabled = true;
+                mainActionBtn.disabled = true;
+                mainActionBtn.innerText = "All-In";
+                document.getElementById('player-status').innerText = "All-In";
+            } else {
+                foldBtn.disabled = !state.isPlayerTurn;
+                mainActionBtn.disabled = !state.isPlayerTurn;
+            }
+
+            if (state.pendingBetSelection > 0) {
+                const labelType = state.currentBet > 0 ? "Raise" : "Bet";
+                mainActionBtn.innerText = `Confirm ${labelType} ($${state.pendingBetSelection})`;
+                
+                const minLegal = getMinimumLegalRaiseTotal(state.playerCurrentBet, state.playerChips);
+                const maxAffordable = state.playerCurrentBet + state.playerChips;
+
+                if (state.pendingBetSelection >= minLegal || state.pendingBetSelection === maxAffordable) {
+                    mainActionBtn.className = "side-action state-confirm";
+                    mainActionBtn.disabled = false;
+                } else {
+                    mainActionBtn.className = "side-action";
+                    mainActionBtn.innerText = `Min ${labelType} $${Math.min(minLegal, maxAffordable)}`;
+                    mainActionBtn.disabled = true;
+                }
+            } else if (state.playerChips > 0 || !state.isPlayerTurn) {
+                if (activeCall > 0) {
+                    mainActionBtn.innerText = `Call $${activeCall}`;
+                    mainActionBtn.className = "side-action state-call";
+                } else {
+                    mainActionBtn.innerText = "Check";
+                    mainActionBtn.className = "side-action state-check";
+                }
+            }
+
+            const uiChipsLocked = !state.isPlayerTurn || state.playerChips <= 0;
+            document.getElementById('btn-qb10').disabled = uiChipsLocked;
+            document.getElementById('btn-qb20').disabled = uiChipsLocked;
+            document.getElementById('btn-qb40').disabled = uiChipsLocked;
+            document.getElementById('btn-qb60').disabled = uiChipsLocked;
+            document.getElementById('btn-allin').disabled = uiChipsLocked;
+
+            const cancelBtn = document.getElementById('btn-cancel-bet');
+            cancelBtn.style.display = state.pendingBetSelection > 0 ? "block" : "none";
+        }
+
+        function handleDeal() {
+            if (state.round !== 4) return;
+            playSound('card');
+            
+            state.handsDealtCount++;
+            state.deck = createDeck();
+            state.playerHand = [state.deck.pop(), state.deck.pop()];
+            state.oppHand = [state.deck.pop(), state.deck.pop()];
+            state.community = [];
+            state.round = 0;
+            state.lastRaiseIncrement = 20;
+            state.dealer = state.dealer === 0 ? 1 : 0;
+
+            let sbCost = 10;
+            let bbCost = 20;
+
+            if (state.dealer === 0) {
+                sbCost = Math.min(10, state.playerChips);
+                bbCost = Math.min(20, state.oppChips);
+                if (sbCost > bbCost) sbCost = bbCost;
+                state.playerChips -= sbCost;
+                state.oppChips -= bbCost;
+                state.playerCurrentBet = sbCost;
+                state.oppCurrentBet = bbCost;
+            } else {
+                sbCost = Math.min(10, state.oppChips);
+                bbCost = Math.min(20, state.playerChips);
+                if (sbCost > bbCost) sbCost = bbCost;
+                state.oppChips -= sbCost;
+                state.playerChips -= bbCost;
+                state.oppCurrentBet = sbCost;
+                state.playerCurrentBet = bbCost;
+            }
+
+            state.pot = sbCost + bbCost;
+            state.currentBet = Math.max(state.playerCurrentBet, state.oppCurrentBet);
+            state.pendingBetSelection = 0;
+
+            document.getElementById('player-status').innerText = `SB: $${state.playerCurrentBet}`;
+            document.getElementById('player-status').className = "status-text";
+            document.getElementById('opp-status').innerText = `BB: $${state.oppCurrentBet}`;
+            document.getElementById('opp-status').className = "status-text";
+            document.getElementById('game-status').innerText = "Pre-Flop";
+            document.getElementById('payout-status').innerText = "";
+
+            state.isPlayerTurn = (state.dealer === 0);
+            updateUI();
+
+            if (!state.isPlayerTurn) setTimeout(opponentTurn, 1000);
+        }
+
+        function addBet(value) {
+            if (!state.isPlayerTurn) return;
+            playSound('chip');
+            const maxAffordableTotal = state.playerCurrentBet + state.playerChips;
+
+            if (value === 'allin') {
+                state.pendingBetSelection = maxAffordableTotal;
+            } else {
+                if (state.pendingBetSelection === 0) {
+                    state.pendingBetSelection = Math.max(state.currentBet, state.playerCurrentBet);
+                }
+                if (state.pendingBetSelection + value <= maxAffordableTotal) {
+                    state.pendingBetSelection += value;
+                } else {
+                    state.pendingBetSelection = maxAffordableTotal;
+                }
+            }
+            updateUI();
+        }
+
+        function handleCancelBet() {
+            playSound('card');
+            state.pendingBetSelection = 0;
+            updateUI();
+        }
+
+        function handleConfirmBet() {
+            if (!state.isPlayerTurn || state.pendingBetSelection === 0) return;
+
+            const minLegal = getMinimumLegalRaiseTotal(state.playerCurrentBet, state.playerChips);
+            const maxAffordable = state.playerCurrentBet + state.playerChips;
+
+            if (state.pendingBetSelection < minLegal && state.pendingBetSelection !== maxAffordable) {
+                return;
+            }
+
+            playSound('alert-bet');
+            const modeLabel = state.currentBet > 0 ? 'Raise' : 'Bet';
+            const addedToPot = state.pendingBetSelection - state.playerCurrentBet;
+            const newRaiseIncrement = state.pendingBetSelection - state.currentBet;
+
+            if (newRaiseIncrement > 0) {
+                state.lastRaiseIncrement = newRaiseIncrement;
+            }
+
+            state.playerChips -= addedToPot;
+            state.pot += addedToPot;
+            state.playerCurrentBet = state.pendingBetSelection;
+            state.currentBet = state.pendingBetSelection;
+            state.pendingBetSelection = 0;
+
+            const pStatus = document.getElementById('player-status');
+            pStatus.innerText = `${modeLabel} $${state.playerCurrentBet}`;
+            pStatus.className = "status-text alert-action";
+
+            state.isPlayerTurn = false;
+            updateUI();
+            setTimeout(opponentTurn, 1000);
+        }
+
+        function handleMainAction() {
+            if (!state.isPlayerTurn) return;
+            if (state.pendingBetSelection > 0) {
+                handleConfirmBet();
+                return;
+            }
+
+            const activeCall = state.currentBet - state.playerCurrentBet;
+            if (activeCall > 0) {
+                playSound('chip');
+                let realCall = Math.min(activeCall, state.playerChips);
+                state.playerChips -= realCall;
+                state.pot += realCall;
+                state.playerCurrentBet += realCall;
+
+                const pStatus = document.getElementById('player-status');
+                pStatus.innerText = "Call";
+                pStatus.className = "status-text";
+
+                state.isPlayerTurn = false;
+                updateUI();
+                setTimeout(advanceGameState, 1000);
+            } else {
+                playSound('card');
+                const pStatus = document.getElementById('player-status');
+                pStatus.innerText = "Check";
+                pStatus.className = "status-text";
+
+                const isLastToAct = (state.round === 0) ? 
+                    (state.playerCurrentBet === 20 && state.dealer === 1) : (state.dealer === 0);
+
+                if (isLastToAct) {
+                    state.isPlayerTurn = false;
+                    updateUI();
+                    setTimeout(advanceGameState, 1000);
+                } else {
+                    state.isPlayerTurn = false;
+                    updateUI();
+                    setTimeout(opponentTurn, 1000);
+                }
+            }
+        }
+
+        function handleFold() {
+            if (state.playerChips === 0) return;
+            playSound('card');
+            state.pendingBetSelection = 0;
+            const payoutNotice = document.getElementById('payout-status');
+            payoutNotice.innerText = `Opponent +$${state.pot}`;
+            payoutNotice.className = "payout-notice lose";
+            state.oppChips += state.pot;
+            document.getElementById('game-status').innerText = "Folded.";
+            endHand();
+        }
+
+        function opponentTurn() {
+            // FIX: If the player has no chips, the opponent cannot raise.
+            if (state.playerChips === 0) {
+                const toCall = state.currentBet - state.oppCurrentBet;
+                if (toCall > 0) {
+                    executeOpponentCall(toCall);
+                } else {
+                    executeOpponentCheck();
+                }
+                return;
+            }
+
+            const toCall = state.currentBet - state.oppCurrentBet;
+            const oStatus = document.getElementById('opp-status');
+
+            if (state.round === 0) {
+                const v0 = VALUES.indexOf(state.oppHand[0].val);
+                const v1 = VALUES.indexOf(state.oppHand[1].val);
+                const highVal = Math.max(v0, v1);
+                const lowVal = Math.min(v0, v1);
+                const isPair = (v0 === v1);
+
+                const hasMonster = isPair && highVal >= 5 || (highVal === 12 && lowVal >= 9);
+                const hasGoodCards = isPair || highVal >= 9 || (highVal >= 8 && lowVal >= 7);
+
+                if (toCall > 0) {
+                    if (state.oppChips <= 200) {
+                        if (hasMonster || hasGoodCards) {
+                            executeOpponentBet(state.oppCurrentBet + state.oppChips, "All-In");
+                        } else {
+                            executeOpponentFold();
+                        }
+                        return;
+                    }
+                    if (state.oppChips > 200 && state.oppChips <= 500) {
+                        if (hasMonster) {
+                            if (Math.random() > 0.4) executeOpponentBet(state.currentBet + 30, "Raise");
+                            else executeOpponentCall(toCall);
+                        } else if (hasGoodCards && highVal >= 10) {
+                            executeOpponentCall(toCall);
+                        } else {
+                            executeOpponentFold();
+                        }
+                        return;
+                    }
+                    if (hasMonster) {
+                        if (Math.random() > 0.3) executeOpponentBet(state.currentBet + 40, "Raise");
+                        else executeOpponentCall(toCall);
+                    } else if (hasGoodCards) {
+                        executeOpponentCall(toCall);
+                    } else {
+                        if (toCall <= 10 && highVal >= 7 && Math.random() > 0.4) {
+                            executeOpponentCall(toCall);
+                        } else {
+                            executeOpponentFold();
+                        }
+                    }
+                } else {
+                    if ((hasMonster || hasGoodCards) && Math.random() > 0.5) {
+                        executeOpponentBet(20, "Bet");
+                    } else {
+                        executeOpponentCheck();
+                    }
+                }
+                return;
+            }
+
+            const isBluffHand = (state.handsDealtCount === state.nextBluffHand);
+            const oppCombo = evaluateHandScore([...state.oppHand, ...state.community]);
+
+            if (toCall > 0) {
+                if (isBluffHand) {
+                    if (toCall <= state.pot * 0.5) {
+                        executeOpponentCall(toCall);
+                    } else {
+                        executeOpponentFold();
+                    }
+                } else if (oppCombo.score >= 500) {
+                    if (Math.random() > 0.3 && state.oppChips > toCall) {
+                        executeOpponentBet(state.currentBet + Math.max(state.lastRaiseIncrement, Math.floor(state.pot * 0.6)), "Raise");
+                    } else {
+                        executeOpponentCall(toCall);
+                    }
+                } else if (oppCombo.score >= 300) {
+                    if (Math.random() > 0.5 && state.oppChips > toCall) {
+                        executeOpponentBet(state.currentBet + state.lastRaiseIncrement, "Raise");
+                    } else {
+                        executeOpponentCall(toCall);
+                    }
+                } else if (oppCombo.score >= 200 && oppCombo.score < 300) {
+                    const pairValueIndex = oppCombo.tiebreakers[0];
+                    const boardIndices = state.community.map(c => VALUES.indexOf(c.val));
+                    const highestBoardValueIndex = Math.max(...boardIndices);
+                    const isTopPair = (pairValueIndex === highestBoardValueIndex);
+                    const isAceOrKingPair = (pairValueIndex === 12 || pairValueIndex === 11);
+                    const isPremiumPair = isTopPair || isAceOrKingPair;
+                    const isHeavyBet = (toCall >= state.pot * 0.5);
+                    const isCautionStack = (state.oppChips <= 500);
+
+                    if (isPremiumPair) {
+                        if (isHeavyBet || isCautionStack) {
+                            if (Math.random() > 0.6) { executeOpponentCall(toCall); } else { executeOpponentFold(); }
+                        } else {
+                            if (Math.random() > 0.1) { executeOpponentCall(toCall); } else { executeOpponentFold(); }
+                        }
+                    } else {
+                        if (Math.random() > 0.75) { executeOpponentCall(toCall); } else { executeOpponentFold(); }
+                    }
+                } else {
+                    executeOpponentFold();
+                }
+            } else {
+                if (isBluffHand) {
+                    if (Math.random() > 0.4) {
+                        executeOpponentBet(Math.max(20, Math.floor(state.pot * 0.6)), "Bet");
+                    } else {
+                        executeOpponentCheck();
+                    }
+                } else if (oppCombo.score >= 300) {
+                    executeOpponentBet(Math.max(20, Math.floor(state.pot * 0.5)), "Bet");
+                } else if (oppCombo.score >= 200 && Math.random() > 0.5) {
+                    executeOpponentBet(20, "Bet");
+                } else {
+                    executeOpponentCheck();
+                }
+            }
+        }
+
+        function executeOpponentCall(toCall) {
+            playSound('chip');
+            let realCall = toCall;
+            if (realCall > state.oppChips) realCall = state.oppChips;
+            state.oppChips -= realCall;
+            state.pot += realCall;
+            state.oppCurrentBet += realCall;
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = "Call";
+            oStatus.className = "status-text";
+            setTimeout(advanceGameState, 1000);
+        }
+
+        function executeOpponentBet(amount, typeLabel) {
+            playSound('alert-bet');
+            let minLegal = state.currentBet + (state.currentBet === 0 ? 20 : state.lastRaiseIncrement);
+            let targetAmount = Math.max(amount, minLegal);
+            targetAmount = Math.ceil(targetAmount / 10) * 10;
+            let addedToPot = targetAmount - state.oppCurrentBet;
+
+            if (addedToPot > state.oppChips) {
+                targetAmount = state.oppCurrentBet + state.oppChips;
+                addedToPot = state.oppChips;
+            }
+
+            const increment = targetAmount - state.currentBet;
+            if (increment > 0) {
+                state.lastRaiseIncrement = increment;
+            }
+
+            state.oppChips -= addedToPot;
+            state.pot += addedToPot;
+            state.oppCurrentBet = targetAmount;
+            state.currentBet = targetAmount;
+
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = `${typeLabel} $${state.oppCurrentBet}`;
+            oStatus.className = "status-text alert-action";
+
+            state.isPlayerTurn = true;
+            updateUI();
+        }
+
+        function executeOpponentCheck() {
+            playSound('card');
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = "Check";
+            oStatus.className = "status-text";
+            const isLastToAct = (state.round === 0) ? 
+                (state.oppCurrentBet === 20 && state.dealer === 0) : (state.dealer === 1);
+
+            if (isLastToAct) {
+                setTimeout(advanceGameState, 1000);
+            } else {
+                state.isPlayerTurn = true;
+                updateUI();
+            }
+        }
+
+        function executeOpponentFold() {
+            playSound('card');
+            const payoutNotice = document.getElementById('payout-status');
+            payoutNotice.innerText = `You +$${state.pot}`;
+            payoutNotice.className = "payout-notice win";
+            state.playerChips += state.pot;
+            document.getElementById('game-status').innerText = "Opponent Folds!";
+            document.getElementById('opp-status').innerText = "Fold";
+            document.getElementById('opp-status').className = "status-text";
+            endHand();
+        }
+
+        function advanceGameState() {
+            if (state.playerCurrentBet !== state.oppCurrentBet) {
+                const standardCap = Math.min(state.playerCurrentBet, state.oppCurrentBet);
+                const combinedExcess = (state.playerCurrentBet - standardCap) + (state.oppCurrentBet - standardCap);
+                if (state.playerCurrentBet > standardCap) {
+                    state.playerChips += (state.playerCurrentBet - standardCap);
+                } else {
+                    state.oppChips += (state.oppCurrentBet - standardCap);
+                }
+                state.pot -= combinedExcess;
+            }
+
+            state.playerCurrentBet = 0;
+            state.oppCurrentBet = 0;
+            state.currentBet = 0;
+            state.pendingBetSelection = 0;
+            state.lastRaiseIncrement = 20;
+            state.round++;
+            playSound('card');
+
+            document.getElementById('player-status').className = "status-text";
+            document.getElementById('opp-status').className = "status-text";
+
+            if (state.round === 1) {
+                state.community.push(state.deck.pop(), state.deck.pop(), state.deck.pop());
+                document.getElementById('game-status').innerText = "Flop";
+            } else if (state.round === 2) {
+                state.community.push(state.deck.pop());
+                document.getElementById('game-status').innerText = "Turn";
+            } else if (state.round === 3) {
+                state.community.push(state.deck.pop());
+                document.getElementById('game-status').innerText = "River";
+            } else if (state.round === 4) {
+                determineWinner();
+                return;
+            }
+
+            if (state.playerChips === 0 || state.oppChips === 0) {
+                state.isPlayerTurn = false; 
+                updateUI();
+                setTimeout(advanceGameState, 1000);
+            } else {
+                state.isPlayerTurn = (state.dealer === 1);
+                updateUI();
+                if (!state.isPlayerTurn) setTimeout(opponentTurn, 1000);
+            }
+        }
+
+        function determineWinner() {
+            const pCombo = evaluateHandScore([...state.playerHand, ...state.community]);
+            const oCombo = evaluateHandScore([...state.oppHand, ...state.community]);
+            const payoutNotice = document.getElementById('payout-status');
+
+            let msg = "";
+            let winner = -1;
+
+            if (pCombo.score > oCombo.score) {
+                winner = 0;
+            } else if (oCombo.score > pCombo.score) {
+                winner = 1;
+            } else {
+                for (let i = 0; i < pCombo.tiebreakers.length; i++) {
+                    if (pCombo.tiebreakers[i] > oCombo.tiebreakers[i]) {
+                        winner = 0; break;
+                    }
+                    if (oCombo.tiebreakers[i] > pCombo.tiebreakers[i]) {
+                        winner = 1; break;
+                    }
+                }
+            }
+
+            const wasBluffHand = (state.handsDealtCount === state.nextBluffHand);
+
+            if (winner === 0) {
+                playSound('win');
+                payoutNotice.innerText = `You +$${state.pot}`;
+                payoutNotice.className = "payout-notice win";
+                state.playerChips += state.pot;
+                msg = `You Win! (${pCombo.label})`;
+            } else if (winner === 1) {
+                payoutNotice.innerText = `Opponent +$${state.pot}`;
+                payoutNotice.className = "payout-notice lose";
+                state.oppChips += state.pot;
+                msg = `Opponent Wins! (${oCombo.label})`;
+            } else {
+                const splitAmt = state.pot / 2;
+                payoutNotice.innerText = `Split +$${splitAmt}`;
+                payoutNotice.className = "payout-notice split";
+                state.playerChips += splitAmt;
+                state.oppChips += splitAmt;
+                msg = `Split! (${pCombo.label})`;
+            }
+
+            if (wasBluffHand) pickNextBluffTarget();
+            document.getElementById('game-status').innerText = msg;
+            endHand();
+        }
+
+        function endHand() {
+            if (state.handsDealtCount === state.nextBluffHand) {
+                pickNextBluffTarget();
+            }
+            state.isPlayerTurn = false;
+            state.round = 4;
+            state.pot = 0;
+            updateUI();
+            setTimeout(checkBankruptcy, 1200);
+        }
+
+        function checkBankruptcy() {
+            if (state.playerChips <= 0) {
+                showGameOverScreen("Opponent Wins Match", "You ran out of chips! The bot cleaned you out.");
+            } else if (state.oppChips <= 0) {
+                showGameOverScreen("You Win the Match!", "Incredible! You completely broke the opponent bot.");
+            }
+        }
+
+        function showGameOverScreen(title, message) {
+            document.getElementById('go-title').innerText = title;
+            document.getElementById('go-desc').innerText = message;
+            document.getElementById('game-over-screen').classList.add('show');
+        }
+
+        function reviewFinalHand() {
+            document.getElementById('game-over-screen').classList.remove('show');
+            document.getElementById('btn-return-results').style.display = "block";
+        }
+
+        function showGameOverOverlayAgain() {
+            document.getElementById('game-over-screen').classList.add('show');
+            document.getElementById('btn-return-results').style.display = "none";
+        }
+
+        function resetEntireMatch() {
+            state.playerChips = 1000;
+            state.oppChips = 1000;
+            state.pot = 0;
+            state.playerHand = [];
+            state.oppHand = [];
+            state.community = [];
+            state.round = 4;
+            state.dealer = -1; 
+            state.handsDealtCount = 0;
+            pickNextBluffTarget();
+            
+            document.getElementById('player-status').innerText = "";
+            document.getElementById('opp-status').innerText = "";
+            document.getElementById('game-status').innerText = "Tap Deal";
+            document.getElementById('payout-status').innerText = "";
+            document.getElementById('game-over-screen').classList.remove('show');
+            document.getElementById('btn-return-results').style.display = "none";
+            updateUI();
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kyle's Hold'em</title>
