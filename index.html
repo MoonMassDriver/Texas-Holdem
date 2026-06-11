@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Kyle's Hold'em</title>
-    
-    <link rel="apple-touch-icon" href="Texas-holdem.png">
-
     <style>
         :root {
             --bg-color: #090d10;
@@ -501,8 +498,7 @@
     </div>
 
     <div class="play-area">
-   
-         <div class="player-zone">
+        <div class="player-zone">
             <div id="opp-dealer-container"><div id="opp-puck" class="dealer-puck">D</div></div>
             <div class="card-row" id="opp-cards" style="flex:none; width:100%;"></div>
             <span class="status-text" id="opp-status"></span>
@@ -511,7 +507,6 @@
         <div class="player-zone">
             <div class="card-row" id="community-cards" style="flex:none; width:100%;"></div>
             <span class="status-text" id="game-status">Tap Deal</span>
- 
         </div>
 
         <div class="player-zone">
@@ -520,7 +515,6 @@
             <div class="player-action-row">
                 <div class="action-btn-wrapper left-side">
                     <div id="player-dealer-container"><div id="player-puck" class="dealer-puck">D</div></div>
-    
                     <button id="btn-fold" class="side-action" onclick="handleFold()">Fold</button>
                 </div>
                 <div class="card-row" id="player-cards"></div>
@@ -535,7 +529,6 @@
     <div class="controls-area">
         <div class="btn-row">
             <button id="btn-qb10" class="quick-bet" onclick="addBet(10)">+$10</button>
-      
             <button id="btn-qb20" class="quick-bet" onclick="addBet(20)">+$20</button>
             <button id="btn-qb40" class="quick-bet" onclick="addBet(40)">+$40</button>
             <button id="btn-qb60" class="quick-bet" onclick="addBet(60)">+$60</button>
@@ -544,7 +537,6 @@
         <div class="btn-row">
             <button id="btn-cancel-bet" onclick="handleCancelBet()">✕ Reset</button>
             <button id="btn-allin" class="primary" onclick="addBet('allin')">All-In</button>
-      
             <button id="btn-deal" class="primary" onclick="handleDeal()">Deal</button>
         </div>
 
@@ -560,13 +552,11 @@
             <div class="rankings-subheader">Blinds & Minimum Raises</div>
             <div class="rank-item">
                 <div class="rank-title">Forced Blinds ($10 / $20)</div>
-                <div class="rank-desc">Before cards drop, the Dealer automatically posts the $10 Small Blind, and the opponent posts the $20 Big Blind.
-                Money goes in *before* seeing cards. You can fold post-deal, but your blind is forfeit.</div>
+                <div class="rank-desc">Before cards drop, the Dealer automatically posts the $10 Small Blind, and the opponent posts the $20 Big Blind. Money goes in *before* seeing cards. You can fold post-deal, but your blind is forfeit.</div>
             </div>
             <div class="rank-item">
                 <div class="rank-title">The Minimum Raise Rule</div>
-                <div class="rank-desc">A raise must match the current high bet PLUS increase it by at least the amount of the previous bet/raise increment.
-                Pre-flop, since the Big Blind is $20, the first legal minimum raise size is $40 total.</div>
+                <div class="rank-desc">A raise must match the current high bet PLUS increase it by at least the amount of the previous bet/raise increment. Pre-flop, since the Big Blind is $20, the first legal minimum raise size is $40 total.</div>
             </div>
 
             <div class="rankings-subheader">Hand Rankings</div>
@@ -665,6 +655,7 @@
             round: 4, isPlayerTurn: false, dealer: -1,
             handsDealtCount: 0, nextBluffHand: 0
         };
+
         function pickNextBluffTarget() {
             state.nextBluffHand = state.handsDealtCount + Math.floor(Math.random() * 15) + 1;
         }
@@ -803,6 +794,7 @@
             
             const mainActionBtn = document.getElementById('btn-main-action');
             const foldBtn = document.getElementById('btn-fold');
+
             if (state.playerChips === 0 && state.isPlayerTurn) {
                 foldBtn.disabled = true;
                 mainActionBtn.disabled = true;
@@ -816,9 +808,10 @@
             if (state.pendingBetSelection > 0) {
                 const labelType = state.currentBet > 0 ? "Raise" : "Bet";
                 mainActionBtn.innerText = `Confirm ${labelType} ($${state.pendingBetSelection})`;
+                
                 const minLegal = getMinimumLegalRaiseTotal(state.playerCurrentBet, state.playerChips);
                 const maxAffordable = state.playerCurrentBet + state.playerChips;
-                
+
                 if (state.pendingBetSelection >= minLegal || state.pendingBetSelection === maxAffordable) {
                     mainActionBtn.className = "side-action state-confirm";
                     mainActionBtn.disabled = false;
@@ -851,6 +844,7 @@
         function handleDeal() {
             if (state.round !== 4) return;
             playSound('card');
+            
             state.handsDealtCount++;
             state.deck = createDeck();
             state.playerHand = [state.deck.pop(), state.deck.pop()];
@@ -858,7 +852,6 @@
             state.community = [];
             state.round = 0;
             state.lastRaiseIncrement = 20;
-
             state.dealer = state.dealer === 0 ? 1 : 0;
 
             let sbCost = 10;
@@ -927,6 +920,7 @@
 
         function handleConfirmBet() {
             if (!state.isPlayerTurn || state.pendingBetSelection === 0) return;
+
             const minLegal = getMinimumLegalRaiseTotal(state.playerCurrentBet, state.playerChips);
             const maxAffordable = state.playerCurrentBet + state.playerChips;
 
@@ -986,7 +980,8 @@
                 pStatus.innerText = "Check";
                 pStatus.className = "status-text";
 
-                const isLastToAct = (state.round === 0) ? (state.playerCurrentBet === 20 && state.dealer === 1) : (state.dealer === 0);
+                const isLastToAct = (state.round === 0) ? 
+                    (state.playerCurrentBet === 20 && state.dealer === 1) : (state.dealer === 0);
 
                 if (isLastToAct) {
                     state.isPlayerTurn = false;
@@ -1001,151 +996,257 @@
         }
 
         function handleFold() {
-            if (!state.isPlayerTurn) return;
+            if (state.playerChips === 0) return;
             playSound('card');
-            const pStatus = document.getElementById('player-status');
-            pStatus.innerText = "Fold";
-            pStatus.className = "status-text";
-            state.isPlayerTurn = false;
-            updateUI();
-            setTimeout(() => {
-                state.oppChips += state.pot;
-                state.pot = 0;
-                document.getElementById('payout-status').innerText = "-$" + state.playerCurrentBet;
-                document.getElementById('payout-status').className = "payout-notice lose";
-                endHandTour();
-            }, 1000);
+            state.pendingBetSelection = 0;
+            const payoutNotice = document.getElementById('payout-status');
+            payoutNotice.innerText = `Opponent +$${state.pot}`;
+            payoutNotice.className = "payout-notice lose";
+            state.oppChips += state.pot;
+            document.getElementById('game-status').innerText = "Folded.";
+            endHand();
         }
 
         function opponentTurn() {
-            if (state.round === 4 || state.pot === 0) return;
-
-            const activeCall = state.currentBet - state.oppCurrentBet;
-            const maxAffordableTotal = state.oppCurrentBet + state.oppChips;
-            const oppCombo = [...state.oppHand, ...state.community];
-            const oppStrength = evaluateHandScore(oppCombo).score;
-
-            const activeBluff = (state.handsDealtCount === state.nextBluffHand);
-            const oppStatusText = document.getElementById('opp-status');
-
-            if (activeCall > 0) {
-                if (oppStrength < 150 && !activeBluff) {
-                    if (Math.random() < 0.65) {
-                        oppStatusText.innerText = "Fold";
-                        oppStatusText.className = "status-text";
-                        setTimeout(() => {
-                            state.playerChips += state.pot;
-                            state.pot = 0;
-                            document.getElementById('payout-status').innerText = "+$" + state.oppCurrentBet;
-                            document.getElementById('payout-status').className = "payout-notice win";
-                            endHandTour();
-                        }, 1000);
-                        return;
-                    }
-                }
-
-                if (oppStrength >= 300 && Math.random() < 0.45 && state.oppChips > 40 && state.round < 3) {
-                    executeOpponentRaise();
+            // FIX: If the player has no chips, the opponent cannot raise.[cite: 1]
+            if (state.playerChips === 0) {
+                const toCall = state.currentBet - state.oppCurrentBet;
+                if (toCall > 0) {
+                    executeOpponentCall(toCall);
                 } else {
-                    playSound('chip');
-                    let realCall = Math.min(activeCall, state.oppChips);
-                    state.oppChips -= realCall;
-                    state.pot += realCall;
-                    state.oppCurrentBet += realCall;
-
-                    oppStatusText.innerText = "Call";
-                    oppStatusText.className = "status-text";
-                    updateUI();
-
-                    const isLastToAct = (state.round === 0) ? (state.oppCurrentBet === 20 && state.dealer === 0) : (state.dealer === 1);
-                    if (isLastToAct) {
-                        setTimeout(advanceGameState, 1000);
-                    } else {
-                        setTimeout(() => { state.isPlayerTurn = true; updateUI(); }, 1000);
-                    }
+                    executeOpponentCheck();
                 }
-            } else {
-                if ((oppStrength >= 250 || activeBluff) && Math.random() < 0.50 && state.oppChips > 40 && state.round < 3) {
-                    executeOpponentRaise();
-                } else {
-                    playSound('card');
-                    oppStatusText.innerText = "Check";
-                    oppStatusText.className = "status-text";
-                    updateUI();
-
-                    const isLastToAct = (state.round === 0) ? (state.oppCurrentBet === 20 && state.dealer === 0) : (state.dealer === 1);
-                    if (isLastToAct) {
-                        setTimeout(advanceGameState, 1000);
-                    } else {
-                        setTimeout(() => { state.isPlayerTurn = true; updateUI(); }, 1000);
-                    }
-                }
-            }
-        }
-
-        function executeOpponentRaise() {
-            playSound('alert-bet');
-            const oppWallet = state.oppCurrentBet + state.oppChips;
-            let raiseInc = 20 + (Math.random() < 0.4 ? 20 : 0);
-            let targetTotal = state.currentBet + raiseInc;
-
-            let minLegal = state.currentBet + state.lastRaiseIncrement;
-            if (targetTotal < minLegal) targetTotal = minLegal;
-            if (targetTotal > oppWallet) targetTotal = oppWallet;
-
-            const actualAdded = targetTotal - state.oppCurrentBet;
-            const newRaiseIncrement = targetTotal - state.currentBet;
-            if (newRaiseIncrement > 0) {
-                state.lastRaiseIncrement = newRaiseIncrement;
-            }
-
-            state.oppChips -= actualAdded;
-            state.pot += actualAdded;
-            state.oppCurrentBet = targetTotal;
-            state.currentBet = targetTotal;
-
-            const oppStatusText = document.getElementById('opp-status');
-            oppStatusText.innerText = `Raise $${state.oppCurrentBet}`;
-            oppStatusText.className = "status-text alert-action";
-
-            updateUI();
-            setTimeout(() => { state.isPlayerTurn = true; updateUI(); }, 1000);
-        }
-
-        function advanceGameState() {
-            if (state.round === 4) return;
-
-            document.getElementById('player-status').innerText = "";
-            document.getElementById('opp-status').innerText = "";
-            state.playerCurrentBet = 0;
-            state.oppCurrentBet = 0;
-            state.currentBet = 0;
-
-            const isAllInScenario = (state.playerChips === 0 || state.oppChips === 0);
-
-            if (state.round === 0) {
-                playSound('card');
-                state.community.push(state.deck.pop(), state.deck.pop(), state.deck.pop());
-                state.round = 1;
-                document.getElementById('game-status').innerText = "Flop";
-            } else if (state.round === 1) {
-                playSound('card');
-                state.community.push(state.deck.pop());
-                state.round = 2;
-                document.getElementById('game-status').innerText = "Turn";
-            } else if (state.round === 2) {
-                playSound('card');
-                state.community.push(state.deck.pop());
-                state.round = 3;
-                document.getElementById('game-status').innerText = "River";
-            } else if (state.round === 3) {
-                handleShowdown();
                 return;
             }
 
-            if (isAllInScenario) {
+            const toCall = state.currentBet - state.oppCurrentBet;
+            const oStatus = document.getElementById('opp-status');
+
+            if (state.round === 0) {
+                const v0 = VALUES.indexOf(state.oppHand[0].val);
+                const v1 = VALUES.indexOf(state.oppHand[1].val);
+                const highVal = Math.max(v0, v1);
+                const lowVal = Math.min(v0, v1);
+                const isPair = (v0 === v1);
+
+                const hasMonster = isPair && highVal >= 5 || (highVal === 12 && lowVal >= 9);
+                const hasGoodCards = isPair || highVal >= 9 || (highVal >= 8 && lowVal >= 7);
+
+                if (toCall > 0) {
+                    if (state.oppChips <= 200) {
+                        if (hasMonster || hasGoodCards) {
+                            executeOpponentBet(state.oppCurrentBet + state.oppChips, "All-In");
+                        } else {
+                            executeOpponentFold();
+                        }
+                        return;
+                    }
+                    if (state.oppChips > 200 && state.oppChips <= 500) {
+                        if (hasMonster) {
+                            if (Math.random() > 0.4) executeOpponentBet(state.currentBet + 30, "Raise");
+                            else executeOpponentCall(toCall);
+                        } else if (hasGoodCards && highVal >= 10) {
+                            executeOpponentCall(toCall);
+                        } else {
+                            executeOpponentFold();
+                        }
+                        return;
+                    }
+                    if (hasMonster) {
+                        if (Math.random() > 0.3) executeOpponentBet(state.currentBet + 40, "Raise");
+                        else executeOpponentCall(toCall);
+                    } else if (hasGoodCards) {
+                        executeOpponentCall(toCall);
+                    } else {
+                        if (toCall <= 10 && highVal >= 7 && Math.random() > 0.4) {
+                            executeOpponentCall(toCall);
+                        } else {
+                            executeOpponentFold();
+                        }
+                    }
+                } else {
+                    if ((hasMonster || hasGoodCards) && Math.random() > 0.5) {
+                        executeOpponentBet(20, "Bet");
+                    } else {
+                        executeOpponentCheck();
+                    }
+                }
+                return;
+            }
+
+            const isBluffHand = (state.handsDealtCount === state.nextBluffHand);
+            const oppCombo = evaluateHandScore([...state.oppHand, ...state.community]);
+
+            if (toCall > 0) {
+                if (isBluffHand) {
+                    if (toCall <= state.pot * 0.5) {
+                        executeOpponentCall(toCall);
+                    } else {
+                        executeOpponentFold();
+                    }
+                } else if (oppCombo.score >= 500) {
+                    if (Math.random() > 0.3 && state.oppChips > toCall) {
+                        executeOpponentBet(state.currentBet + Math.max(state.lastRaiseIncrement, Math.floor(state.pot * 0.6)), "Raise");
+                    } else {
+                        executeOpponentCall(toCall);
+                    }
+                } else if (oppCombo.score >= 300) {
+                    if (Math.random() > 0.5 && state.oppChips > toCall) {
+                        executeOpponentBet(state.currentBet + state.lastRaiseIncrement, "Raise");
+                    } else {
+                        executeOpponentCall(toCall);
+                    }
+                } else if (oppCombo.score >= 200 && oppCombo.score < 300) {
+                    const pairValueIndex = oppCombo.tiebreakers[0];
+                    const boardIndices = state.community.map(c => VALUES.indexOf(c.val));
+                    const highestBoardValueIndex = Math.max(...boardIndices);
+                    const isTopPair = (pairValueIndex === highestBoardValueIndex);
+                    const isAceOrKingPair = (pairValueIndex === 12 || pairValueIndex === 11);
+                    const isPremiumPair = isTopPair || isAceOrKingPair;
+                    const isHeavyBet = (toCall >= state.pot * 0.5);
+                    const isCautionStack = (state.oppChips <= 500);
+
+                    if (isPremiumPair) {
+                        if (isHeavyBet || isCautionStack) {
+                            if (Math.random() > 0.6) { executeOpponentCall(toCall); } else { executeOpponentFold(); }
+                        } else {
+                            if (Math.random() > 0.1) { executeOpponentCall(toCall); } else { executeOpponentFold(); }
+                        }
+                    } else {
+                        if (Math.random() > 0.75) { executeOpponentCall(toCall); } else { executeOpponentFold(); }
+                    }
+                } else {
+                    executeOpponentFold();
+                }
+            } else {
+                if (isBluffHand) {
+                    if (Math.random() > 0.4) {
+                        executeOpponentBet(Math.max(20, Math.floor(state.pot * 0.6)), "Bet");
+                    } else {
+                        executeOpponentCheck();
+                    }
+                } else if (oppCombo.score >= 300) {
+                    executeOpponentBet(Math.max(20, Math.floor(state.pot * 0.5)), "Bet");
+                } else if (oppCombo.score >= 200 && Math.random() > 0.5) {
+                    executeOpponentBet(20, "Bet");
+                } else {
+                    executeOpponentCheck();
+                }
+            }
+        }
+
+        function executeOpponentCall(toCall) {
+            playSound('chip');
+            let realCall = toCall;
+            if (realCall > state.oppChips) realCall = state.oppChips;
+            state.oppChips -= realCall;
+            state.pot += realCall;
+            state.oppCurrentBet += realCall;
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = "Call";
+            oStatus.className = "status-text";
+            setTimeout(advanceGameState, 1000);
+        }
+
+        function executeOpponentBet(amount, typeLabel) {
+            playSound('alert-bet');
+            let minLegal = state.currentBet + (state.currentBet === 0 ? 20 : state.lastRaiseIncrement);
+            let targetAmount = Math.max(amount, minLegal);
+            targetAmount = Math.ceil(targetAmount / 10) * 10;
+            let addedToPot = targetAmount - state.oppCurrentBet;
+
+            if (addedToPot > state.oppChips) {
+                targetAmount = state.oppCurrentBet + state.oppChips;
+                addedToPot = state.oppChips;
+            }
+
+            const increment = targetAmount - state.currentBet;
+            if (increment > 0) {
+                state.lastRaiseIncrement = increment;
+            }
+
+            state.oppChips -= addedToPot;
+            state.pot += addedToPot;
+            state.oppCurrentBet = targetAmount;
+            state.currentBet = targetAmount;
+
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = `${typeLabel} $${state.oppCurrentBet}`;
+            oStatus.className = "status-text alert-action";
+
+            state.isPlayerTurn = true;
+            updateUI();
+        }
+
+        function executeOpponentCheck() {
+            playSound('card');
+            const oStatus = document.getElementById('opp-status');
+            oStatus.innerText = "Check";
+            oStatus.className = "status-text";
+            const isLastToAct = (state.round === 0) ? 
+                (state.oppCurrentBet === 20 && state.dealer === 0) : (state.dealer === 1);
+
+            if (isLastToAct) {
+                setTimeout(advanceGameState, 1000);
+            } else {
+                state.isPlayerTurn = true;
                 updateUI();
-                setTimeout(advanceGameState, 1200);
+            }
+        }
+
+        function executeOpponentFold() {
+            playSound('card');
+            const payoutNotice = document.getElementById('payout-status');
+            payoutNotice.innerText = `You +$${state.pot}`;
+            payoutNotice.className = "payout-notice win";
+            state.playerChips += state.pot;
+            document.getElementById('game-status').innerText = "Opponent Folds!";
+            document.getElementById('opp-status').innerText = "Fold";
+            document.getElementById('opp-status').className = "status-text";
+            endHand();
+        }
+
+        function advanceGameState() {
+            if (state.playerCurrentBet !== state.oppCurrentBet) {
+                const standardCap = Math.min(state.playerCurrentBet, state.oppCurrentBet);
+                const combinedExcess = (state.playerCurrentBet - standardCap) + (state.oppCurrentBet - standardCap);
+                if (state.playerCurrentBet > standardCap) {
+                    state.playerChips += (state.playerCurrentBet - standardCap);
+                } else {
+                    state.oppChips += (state.oppCurrentBet - standardCap);
+                }
+                state.pot -= combinedExcess;
+            }
+
+            state.playerCurrentBet = 0;
+            state.oppCurrentBet = 0;
+            state.currentBet = 0;
+            state.pendingBetSelection = 0;
+            state.lastRaiseIncrement = 20;
+            state.round++;
+            playSound('card');
+
+            document.getElementById('player-status').className = "status-text";
+            document.getElementById('opp-status').className = "status-text";
+
+            if (state.round === 1) {
+                state.community.push(state.deck.pop(), state.deck.pop(), state.deck.pop());
+                document.getElementById('game-status').innerText = "Flop";
+            } else if (state.round === 2) {
+                state.community.push(state.deck.pop());
+                document.getElementById('game-status').innerText = "Turn";
+            } else if (state.round === 3) {
+                state.community.push(state.deck.pop());
+                document.getElementById('game-status').innerText = "River";
+            } else if (state.round === 4) {
+                determineWinner();
+                return;
+            }
+
+            if (state.playerChips === 0 || state.oppChips === 0) {
+                state.isPlayerTurn = false; 
+                updateUI();
+                setTimeout(advanceGameState, 1000);
             } else {
                 state.isPlayerTurn = (state.dealer === 1);
                 updateUI();
@@ -1153,73 +1254,76 @@
             }
         }
 
-        function handleShowdown() {
-            state.round = 4;
-            state.isPlayerTurn = false;
+        function determineWinner() {
+            const pCombo = evaluateHandScore([...state.playerHand, ...state.community]);
+            const oCombo = evaluateHandScore([...state.oppHand, ...state.community]);
+            const payoutNotice = document.getElementById('payout-status');
 
-            const pResult = evaluateHandScore([...state.playerHand, ...state.community]);
-            const oResult = evaluateHandScore([...state.oppHand, ...state.community]);
+            let msg = "";
+            let winner = -1;
 
-            document.getElementById('player-status').innerText = pResult.label;
-            document.getElementById('opp-status').innerText = oResult.label;
-
-            let winner = 0; 
-            if (pResult.score > oResult.score) winner = 1;
-            else if (oResult.score > pResult.score) winner = 2;
-            else {
-                for (let i = 0; i < pResult.tiebreakers.length; i++) {
-                    if (pResult.tiebreakers[i] > oResult.tiebreakers[i]) { winner = 1; break; }
-                    if (oResult.tiebreakers[i] > pResult.tiebreakers[i]) { winner = 2; break; }
+            if (pCombo.score > oCombo.score) {
+                winner = 0;
+            } else if (oCombo.score > pCombo.score) {
+                winner = 1;
+            } else {
+                for (let i = 0; i < pCombo.tiebreakers.length; i++) {
+                    if (pCombo.tiebreakers[i] > oCombo.tiebreakers[i]) {
+                        winner = 0; break;
+                    }
+                    if (oCombo.tiebreakers[i] > pCombo.tiebreakers[i]) {
+                        winner = 1; break;
+                    }
                 }
             }
 
-            const notice = document.getElementById('payout-status');
+            const wasBluffHand = (state.handsDealtCount === state.nextBluffHand);
 
-            if (winner === 1) {
+            if (winner === 0) {
                 playSound('win');
+                payoutNotice.innerText = `You +$${state.pot}`;
+                payoutNotice.className = "payout-notice win";
                 state.playerChips += state.pot;
-                notice.innerText = `+ $${state.pot}`;
-                notice.className = "payout-notice win";
-                document.getElementById('game-status').innerText = "You Win!";
-            } else if (winner === 2) {
+                msg = `You Win! (${pCombo.label})`;
+            } else if (winner === 1) {
+                payoutNotice.innerText = `Opponent +$${state.pot}`;
+                payoutNotice.className = "payout-notice lose";
                 state.oppChips += state.pot;
-                notice.innerText = `-$${state.pot / 2}`; 
-                notice.className = "payout-notice lose";
-                document.getElementById('game-status').innerText = "Opponent Wins";
+                msg = `Opponent Wins! (${oCombo.label})`;
             } else {
-                const splitAmt = Math.floor(state.pot / 2);
+                const splitAmt = state.pot / 2;
+                payoutNotice.innerText = `Split +$${splitAmt}`;
+                payoutNotice.className = "payout-notice split";
                 state.playerChips += splitAmt;
                 state.oppChips += splitAmt;
-                notice.innerText = "Split Pot";
-                notice.className = "payout-notice split";
-                document.getElementById('game-status').innerText = "Chop Pot";
+                msg = `Split! (${pCombo.label})`;
             }
 
+            if (wasBluffHand) pickNextBluffTarget();
+            document.getElementById('game-status').innerText = msg;
+            endHand();
+        }
+
+        function endHand() {
+            if (state.handsDealtCount === state.nextBluffHand) {
+                pickNextBluffTarget();
+            }
+            state.isPlayerTurn = false;
+            state.round = 4;
             state.pot = 0;
-            endHandTour();
-        }
-
-        function endHandTour() {
             updateUI();
-            if (state.playerChips <= 0 || state.oppChips <= 0) {
-                setTimeout(showGameOverScreen, 1500);
-            } else {
-                if (state.handsDealtCount >= state.nextBluffHand) {
-                    pickNextBluffTarget();
-                }
+            setTimeout(checkBankruptcy, 1200);
+        }
+
+        function checkBankruptcy() {
+            if (state.playerChips <= 0) {
+                showGameOverScreen("Opponent Wins Match", "You ran out of chips! The bot cleaned you out.");
+            } else if (state.oppChips <= 0) {
+                showGameOverScreen("You Win the Match!", "Incredible! You completely broke the opponent bot.");
             }
         }
 
-        function showGameOverScreen() {
-            let title = "Game Over";
-            let message = "You ran out of chips!";
-            
-            if (state.playerChips > state.oppChips) {
-                title = "Victory!";
-                message = "You cleaned out your opponent!";
-                playSound('win');
-            }
-            
+        function showGameOverScreen(title, message) {
             document.getElementById('go-title').innerText = title;
             document.getElementById('go-desc').innerText = message;
             document.getElementById('game-over-screen').classList.add('show');
